@@ -14,7 +14,7 @@ end
 
 macro subtypes(supertype, body, subtypes...)
 	for subtype in subtypes
-		@eval (mutable struct $subtype <: $supertype
+		@eval (type $subtype <: $supertype
 			$body
 		end;
 		export $subtype)

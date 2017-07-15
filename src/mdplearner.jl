@@ -1,5 +1,5 @@
 """
-	struct MDPLearner
+	type MDPLearner
 		gamma::Float64
 		policy::Array{Int64, 1}
 		values::Array{Float64, 1}
@@ -7,7 +7,7 @@
 
 Used to solve `mdp` with discount factor `gamma`.
 """
-struct MDPLearner <: AbstractReinforcementLearner
+type MDPLearner <: AbstractReinforcementLearner
     gamma::Float64
     policy::Array{Int64, 1}
     values::Array{Float64, 1}

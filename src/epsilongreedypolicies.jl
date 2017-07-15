@@ -27,7 +27,7 @@ const EpsilonGreedyPolicy = VeryOptimisticEpsilonGreedyPolicy
 export EpsilonGreedyPolicy
 
 @doc """
-	mutable struct EpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy
+	type EpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy
 		ϵ::Float64
 
 Chooses the action with the highest value with probability 1 - ϵ and selects an
@@ -37,7 +37,7 @@ never performed before, the behavior of the
 """ EpsilonGreedyPolicy
 
 @doc """
-	mutable struct VeryOptimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy
+	type VeryOptimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy
 		ϵ::Float64
 
 [`EpsilonGreedyPolicy`](@ref) that samples uniformly from novel actions in each
@@ -48,7 +48,7 @@ the maximal value ever returned by the environment.
 """ VeryOptimisticEpsilonGreedyPolicy
 
 @doc """
-	mutable struct OptimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy
+	type OptimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy
 		ϵ::Float64
 
 [`EpsilonGreedyPolicy`](@ref) that samples uniformly from the actions with the
@@ -57,7 +57,7 @@ where never chosen before.
 """ OptimisticEpsilonGreedyPolicy
 
 @doc """
-	mutable struct PesimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy
+	type PesimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy
 		ϵ::Float64
 
 [`EpsilonGreedyPolicy`](@ref) that does not handle novel actions differently.

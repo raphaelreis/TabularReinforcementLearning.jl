@@ -1,6 +1,6 @@
 for kind in (:QLearning, :Sarsa)
 	@eval begin
-		mutable struct $kind <: AbstractTDLearner
+		type $kind <: AbstractTDLearner
 			α::Float64
 			γ::Float64
 			params::Array{Float64, 2}
@@ -17,7 +17,7 @@ for kind in (:QLearning, :Sarsa)
 end
 # TODO: how can one generate the doc nicer?
 @doc """
-	mutable struct QLearning <: AbstractTDLearner
+	type QLearning <: AbstractTDLearner
 		α::Float64
 		γ::Float64
 		params::Array{Float64, 2}
@@ -41,7 +41,7 @@ Set `initvalue` to the maximal reward to have optimistic exploration.
 [`VeryOptimisticEpsilonGreedyPolicy`](@ref)) but substitutes all `Inf64` with `0` in td-error.
 """ QLearning()
 @doc """
-	mutable struct Sarsa <: AbstractTDLearner
+	type Sarsa <: AbstractTDLearner
 		α::Float64
 		γ::Float64
 		params::Array{Float64, 2}
@@ -66,7 +66,7 @@ Set `initvalue` to the maximal reward to have optimistic exploration.
 """ Sarsa()
 
 """
-	mutable struct ExpectedSarsa <: AbstractTDLearner
+	type ExpectedSarsa <: AbstractTDLearner
 		α::Float64
 		γ::Float64
 		params::Array{Float64, 2}
@@ -83,7 +83,7 @@ with next state ``s'``, probability ``\\pi(a', s')`` of choosing action ``a'`` i
 next state ``s'`` and ``e(a, s)`` is the eligibility trace (see [`NoTraces`](@ref), 
 [`ReplacingTraces`](@ref) and [`AccumulatingTraces`](@ref)).
 """
-mutable struct ExpectedSarsa <: AbstractTDLearner
+type ExpectedSarsa <: AbstractTDLearner
 	α::Float64
 	γ::Float64
 	params::Array{Float64, 2}

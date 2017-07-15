@@ -1,5 +1,5 @@
 """
-	mutable struct SmallBackups <: AbstractReinforcementLearner
+	type SmallBackups <: AbstractReinforcementLearner
 		γ::Float64
 		maxcount::UInt64
 		counter::Int64
@@ -18,7 +18,7 @@ Set `initvalue` to the maximal reward to have optimistic exploration.
 `initvalue = Inf64` treats novel actions in a special way (see
 [`VeryOptimisticEpsilonGreedyPolicy`](@ref)) but substitutes all `Inf64` with `0` in td-error.
 """
-mutable struct SmallBackups <: AbstractReinforcementLearner
+type SmallBackups <: AbstractReinforcementLearner
 	γ::Float64
 	maxcount::UInt64
 	minpriority::Float64

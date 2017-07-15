@@ -1,10 +1,10 @@
-abstract type AbstractMultistepLearner <: AbstractReinforcementLearner end
+abstract AbstractMultistepLearner <: AbstractReinforcementLearner
 """
-	struct NstepLearner <: AbstractReinforcementLearner
+	type NstepLearner <: AbstractReinforcementLearner
 		nsteps::Int64
 		learner::Union{AbstractTDLearner, AbstractPolicyGradient}
 """
-struct NstepLearner <: AbstractMultistepLearner
+type NstepLearner <: AbstractMultistepLearner
 	nsteps::Int64
 	learner::Union{AbstractTDLearner, AbstractPolicyGradient}
 end
@@ -17,9 +17,9 @@ NstepLearner(; nsteps = 10, learner = Sarsa, kwargs...) =
 export NstepLearner
 
 """
-	struct EpisodicLearner <: AbstractMultistepLearner
+	type EpisodicLearner <: AbstractMultistepLearner
 		learner::Union{AbstractTDLearner, AbstractPolicyGradient}
 """
-struct EpisodicLearner <: AbstractMultistepLearner
+type EpisodicLearner <: AbstractMultistepLearner
 	learner::Union{AbstractTDLearner, AbstractPolicyGradient}
 end

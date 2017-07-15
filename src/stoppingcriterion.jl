@@ -1,11 +1,11 @@
 """
-	mutable struct ConstantNumberSteps <: StoppingCriterion
+	type ConstantNumberSteps <: StoppingCriterion
 		T::Int64
 		counter::Int64
 
 Stops learning when the agent has taken 'T' actions.
 """
-mutable struct ConstantNumberSteps <: StoppingCriterion
+type ConstantNumberSteps <: StoppingCriterion
 	T::Int64
 	counter::Int64
 end
@@ -24,14 +24,14 @@ end
 export ConstantNumberSteps
 
 """
-	mutable struct ConstantNumberEpisodes <: StoppingCriterion
+	type ConstantNumberEpisodes <: StoppingCriterion
 		N::Int64
 		counter::Int64
 
 Stops learning when the agent has finished 'N' episodes.
 """
 
-mutable struct ConstantNumberEpisodes <: StoppingCriterion
+type ConstantNumberEpisodes <: StoppingCriterion
 	N::Int64
 	counter::Int64
 end

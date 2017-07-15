@@ -1,11 +1,11 @@
 """
-	mutable struct MeanReward <: TabularReinforcementLearning.SimpleEvaluationMetric
+	type MeanReward <: TabularReinforcementLearning.SimpleEvaluationMetric
 		meanreward::Float64
 		counter::Int64
 
 Computes iteratively the mean reward.
 """
-mutable struct MeanReward <: SimpleEvaluationMetric
+type MeanReward <: SimpleEvaluationMetric
 	meanreward::Float64
 	counter::Int64
 end
@@ -27,12 +27,12 @@ getvalue(p::MeanReward) = p.meanreward
 export MeanReward, getvalue
 
 """
-	mutable struct TotalReward <: TabularReinforcementLearning.SimpleEvaluationMetric
+	type TotalReward <: TabularReinforcementLearning.SimpleEvaluationMetric
 		reward::Float64
 
 Accumulates all rewards.
 """
-mutable struct TotalReward <: SimpleEvaluationMetric
+type TotalReward <: SimpleEvaluationMetric
 	reward::Float64
 end
 """
@@ -51,12 +51,12 @@ getvalue(p::TotalReward) = p.reward
 export TotalReward
 
 """
-	mutable struct TimeSteps <: SimpleEvaluationMetric
+	type TimeSteps <: SimpleEvaluationMetric
 		counter::Int64
 
 Counts the number of timesteps the simulation is running.
 """
-mutable struct TimeSteps <: SimpleEvaluationMetric
+type TimeSteps <: SimpleEvaluationMetric
 	counter::Int64
 end
 """
@@ -81,7 +81,7 @@ export TimeSteps
 
 Stores the value of the simple `metric` for each episode in `values`.
 """
-struct EvaluationPerEpisode <: AbstractEvaluationMetrics
+type EvaluationPerEpisode <: AbstractEvaluationMetrics
 	values::Array{Float64, 1}
 	metric::SimpleEvaluationMetric
 end
@@ -118,7 +118,7 @@ export EvaluationPerEpisode
 
 Stores the value of the simple `metric` after every `T` steps in `values`.
 """
-mutable struct EvaluationPerT <: AbstractEvaluationMetrics
+type EvaluationPerT <: AbstractEvaluationMetrics
 	T::Int64
 	counter::Int64
 	values::Array{Float64, 1}
@@ -150,7 +150,7 @@ getvalue(p::EvaluationPerT) = deepcopy(p.values)
 export EvaluationPerT
 
 """
-	struct RecordAll <: AbstractEvaluationMetrics
+	type RecordAll <: AbstractEvaluationMetrics
 		r::Array{Float64, 1}
 		a::Array{Int64, 1}
 		s::Array{Int64, 1}
@@ -158,7 +158,7 @@ export EvaluationPerT
 
 Records everything.
 """
-struct RecordAll <: AbstractEvaluationMetrics
+type RecordAll <: AbstractEvaluationMetrics
 	r::Array{Float64, 1}
 	a::Array{Int64, 1}
 	s::Array{Int64, 1}
@@ -183,12 +183,12 @@ getvalue(p::RecordAll) = deepcopy(p)
 export RecordAll
 
 """
-	struct AllRewards <: AbstractEvaluationMetrics
+	type AllRewards <: AbstractEvaluationMetrics
 		rewards::Array{Float64, 1}
 	
 Records all rewards.
 """
-struct AllRewards <: AbstractEvaluationMetrics
+type AllRewards <: AbstractEvaluationMetrics
 	rewards::Array{Float64, 1}
 end
 """

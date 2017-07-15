@@ -1,10 +1,10 @@
 """
-	mutable struct Agent
+	type Agent
 		learner::AbstractReinforcementLearner
 		policy::AbstractPolicy
 		callback::AbstractCallback
 """
-mutable struct Agent
+type Agent
 	learner::AbstractReinforcementLearner
 	policy::AbstractPolicy
 	callback::AbstractCallback
@@ -37,13 +37,13 @@ function Agent(learner::AbstractMultistepLearner;
 	end
 end
 """
-	mutable struct RLSetup
+	type RLSetup
 		agent::Agent
 		environment
 		metric::AbstractEvaluationMetrics
 		stoppingcriterion::StoppingCriterion
 """
-mutable struct RLSetup
+type RLSetup
 	agent::Agent
 	environment
 	metric::AbstractEvaluationMetrics

@@ -1,6 +1,6 @@
 using TabularReinforcementLearning
 
-struct RewardHitsThreshold <: TabularReinforcementLearning.StoppingCriterion
+type RewardHitsThreshold <: TabularReinforcementLearning.StoppingCriterion
 	θ::Float64
 end
 import TabularReinforcementLearning.isbreak!

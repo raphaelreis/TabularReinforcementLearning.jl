@@ -1,5 +1,5 @@
 """
-	mutable struct MDP 
+	type MDP 
 		ns::Int64
 		na::Int64
 		state::Int64
@@ -16,7 +16,7 @@ every (action, state) pair of a (potentially sparse) array that sums to 1 (see
 probabilities) `na`x`ns` - array of `reward`, array of initial states
 `initialstates`, and `ns` - array of 0/1 indicating if a state is terminal.
 """
-mutable struct MDP 
+type MDP 
     ns::Int64
     na::Int64
 	state::Int64
@@ -67,13 +67,13 @@ Returns a `SparseVector` of length `n` where one element in `min`:`max` has
 value 1.
 """
 getprobvecdeterministic(n, min = 1, max = n) = SparseVector(n, [rand(min:max)], [1.])
-# constructors
+# contypeors
 """
 	MDP(ns, na; init = "random")
 	MDP(; ns = 10, na = 4, init = "random")
 
 Return MDP with `init in ("random", "uniform", "deterministic")`, where the
-keyword init determines how to construct the transition probabilites (see also 
+keyword init determines how to contype the transition probabilites (see also 
 [`getprobvecrandom`](@ref), [`getprobvecuniform`](@ref),
 [`getprobvecdeterministic`](@ref)).
 """
@@ -91,7 +91,7 @@ end
 """
 	treeMDP(na, depth; init = "random", branchingfactor = 3)
 
-Returns a tree structured MDP with na actions and `depth` of the tree.
+Returns a tree typeured MDP with na actions and `depth` of the tree.
 If `init` is random, the `branchingfactor` determines how many possible states a
 (action, state) pair has. If `init = "deterministic"` the `branchingfactor =
 na`.

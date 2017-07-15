@@ -1,17 +1,17 @@
 """
-	struct NoCallback <: AbstractCallback end
+	type NoCallback <: AbstractCallback end
 """
-struct NoCallback <: AbstractCallback end
+type NoCallback <: AbstractCallback end
 export NoCallback
 callback!(::NoCallback, learner, policy, r, a, s, isterminal) = Void
 
 """
-	struct ListofCallbacks <: AbstractCallback 
+	type ListofCallbacks <: AbstractCallback 
 		callbacks::Array{AbstractCallback, 1}
 
 Loops over all `callbacks`.
 """
-struct ListofCallbacks <: AbstractCallback
+type ListofCallbacks <: AbstractCallback
 	callbacks::Array{AbstractCallback, 1}
 end
 export ListofCallbacks
@@ -22,7 +22,7 @@ function callback!(c::ListofCallbacks, learner, policy, r, a, s, isterminal)
 end
 
 """
-	mutable struct ReduceEpsilonPerEpisode <: AbstractCallback
+	type ReduceEpsilonPerEpisode <: AbstractCallback
 		ϵ0::Float64
 		counter::Int64
 
@@ -30,7 +30,7 @@ Reduces ϵ of an [`EpsilonGreedyPolicy`](@ref) after each episode.
 
 In episode n, ϵ = ϵ0/n
 """
-mutable struct ReduceEpsilonPerEpisode <: AbstractCallback
+type ReduceEpsilonPerEpisode <: AbstractCallback
 	ϵ0::Float64
 	counter::Int64
 end
@@ -53,7 +53,7 @@ end
 export ReduceEpsilonPerEpisode
 
 """
-	mutable struct ReduceEpsilonPerT <: AbstractCallback
+	type ReduceEpsilonPerT <: AbstractCallback
 		ϵ0::Float64
 		T::Int64
 		n::Int64
@@ -63,7 +63,7 @@ Reduces ϵ of an [`EpsilonGreedyPolicy`](@ref) after every `T` steps.
 
 After n * T steps, ϵ = ϵ0/n
 """
-mutable struct ReduceEpsilonPerT <: AbstractCallback
+type ReduceEpsilonPerT <: AbstractCallback
 	ϵ0::Float64
 	T::Int64
 	n::Int64

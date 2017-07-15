@@ -1,5 +1,5 @@
 """
-	mutable struct PolicyGradientBackward <: AbstractPolicyGradient
+	type PolicyGradientBackward <: AbstractPolicyGradient
 		α::Float64
 		γ::Float64
 		params::Array{Float64, 2}
@@ -16,7 +16,7 @@ where ``r_{eff} =  r`` for [`NoBiasCorrector`](@ref), ``r_{eff} =  r - rmean``
 for [`RewardLowpassFilterBiasCorrector`](@ref) and e[a, s] is the eligibility
 trace.
 """	
-mutable struct PolicyGradientBackward <: AbstractPolicyGradient
+type PolicyGradientBackward <: AbstractPolicyGradient
 	α::Float64
 	γ::Float64
 	params::Array{Float64, 2}
@@ -39,13 +39,13 @@ function PolicyGradientBackward(; ns = 10, na = 4, α = .1, γ = .9,
 end
 
 """
-	mutable struct PolicyGradientForward <: AbstractPolicyGradient
+	type PolicyGradientForward <: AbstractPolicyGradient
 		α::Float64
 		γ::Float64
 		params::Array{Float64, 2}
 		biascorrector::AbstractBiasCorrector
 """
-mutable struct PolicyGradientForward <: AbstractPolicyGradient
+type PolicyGradientForward <: AbstractPolicyGradient
 	α::Float64
 	γ::Float64
 	params::Array{Float64, 2}
@@ -87,21 +87,21 @@ function update!(learner, r, s, a)
 end
 
 """
-	struct NoBiasCorrector <: AbstractBiasCorrector
+	type NoBiasCorrector <: AbstractBiasCorrector
 """
-struct NoBiasCorrector <: AbstractBiasCorrector end
+type NoBiasCorrector <: AbstractBiasCorrector end
 export NoBiasCorrector
 correct(::NoBiasCorrector, r, s, G = r) = G
 
 """
-	mutable struct RewardLowpassFilterBiasCorrector <: AbstractBiasCorrector
+	type RewardLowpassFilterBiasCorrector <: AbstractBiasCorrector
 	γ::Float64
 	rmean::Float64
 
 Filters the reward with factor γ and uses effective reward (r - rmean) to update
 the parameters.
 """
-mutable struct RewardLowpassFilterBiasCorrector <: AbstractBiasCorrector
+type RewardLowpassFilterBiasCorrector <: AbstractBiasCorrector
 	γ::Float64
 	rmean::Float64
 end
@@ -120,11 +120,11 @@ function update!(learner::PolicyGradientBackward, r, s, a, nexts, nexta, istermi
 end
 
 """
-	mutable struct Critic <: AbstractBiasCorrector
+	type Critic <: AbstractBiasCorrector
 		α::Float64
 		V::Array{Float64, 1}
 """
-mutable struct Critic <: AbstractBiasCorrector
+type Critic <: AbstractBiasCorrector
 	α::Float64
 	V::Array{Float64, 1}
 end

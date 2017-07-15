@@ -1,7 +1,7 @@
 # learner
-abstract type AbstractReinforcementLearner end
-abstract type AbstractTDLearner <: AbstractReinforcementLearner end
-abstract type AbstractPolicyGradient <: AbstractReinforcementLearner end
+abstract AbstractReinforcementLearner
+abstract AbstractTDLearner <: AbstractReinforcementLearner
+abstract AbstractPolicyGradient <: AbstractReinforcementLearner
 function update! end
 @doc """
 	update!(learner::TabularReinforcementLearning.AbstractReinforcementLearner, 
@@ -21,9 +21,9 @@ Update `learner` after observing `n+1` `states`, performing `n+1` `actions`, rec
 export update!
 
 # policy
-abstract type AbstractPolicy end
-abstract type AbstractEpsilonGreedyPolicy <: AbstractPolicy end
-abstract type AbstractSoftmaxPolicy <: AbstractPolicy end
+abstract AbstractPolicy
+abstract AbstractEpsilonGreedyPolicy <: AbstractPolicy
+abstract AbstractSoftmaxPolicy <: AbstractPolicy
 function act end
 @doc """
 	act(learner::TabularReinforcementLearning.AbstractReinforcementLearner,
@@ -72,8 +72,8 @@ Resets the `environment` to a possible initial state.
 export interact!, getstate, reset!
 
 # metrics
-abstract type AbstractEvaluationMetrics end
-abstract type SimpleEvaluationMetric <: AbstractEvaluationMetrics end
+abstract AbstractEvaluationMetrics
+abstract SimpleEvaluationMetric <: AbstractEvaluationMetrics
 function evaluate! end
 @doc """
 	evaluate!(metric::TabularReinforcementLearning.AbstractEvaluationMetrics, 
@@ -92,7 +92,7 @@ Returns the value of a metric.
 export evaluate!, getvalue 
 
 # stopping
-abstract type StoppingCriterion end
+abstract StoppingCriterion
 function isbreak! end
 @doc """
 	isbreak!(criterion::TabularReinforcementLearning.StoppingCriterion, r, a, s, isterminal)
@@ -105,7 +105,7 @@ to define new criterions.
 export isbreak!
 
 # Callbacks
-abstract type AbstractCallback end
+abstract AbstractCallback
 function callback! end
 @doc """
 	callback!(callback::AbstractCallback, learner, policy, r, a, s, isterminal)
@@ -117,8 +117,8 @@ export callback!
 
 # misc
 
-abstract type AbstractBiasCorrector end
+abstract AbstractBiasCorrector
 
-abstract type AbstractTraces end
+abstract AbstractTraces
 
 

@@ -1,15 +1,15 @@
 """
-	struct NoTraces <: AbstractTraces
+	type NoTraces <: AbstractTraces
 
 No eligibility traces, i.e. ``e(a, s) = 1`` for current action ``a`` and state
 ``s`` and zero otherwise.
 """
-struct NoTraces <: AbstractTraces
+type NoTraces <: AbstractTraces
 end
 export NoTraces
 
 for kind in (:ReplacingTraces, :AccumulatingTraces)
-	@eval (struct $kind <: AbstractTraces
+	@eval (type $kind <: AbstractTraces
 				λ::Float64
 				γλ::Float64
 				trace::Array{Float64, 2}
@@ -22,7 +22,7 @@ for kind in (:ReplacingTraces, :AccumulatingTraces)
 			end)
 end
 @doc """
-	struct ReplacingTraces <: AbstractTraces
+	type ReplacingTraces <: AbstractTraces
 		λ::Float64
 		γλ::Float64
 		trace::Array{Float64, 2}
@@ -39,7 +39,7 @@ pair and ``e(a, s) ←  γλ e(a, s)`` for all other pairs unless
 	ReplacingTraces(ns, na, λ::Float64, γ::Float64; minimaltracevalue = 1e-12)
 """ ReplacingTraces()
 @doc """
-	struct AccumulatingTraces <: AbstractTraces
+	type AccumulatingTraces <: AbstractTraces
 		λ::Float64
 		γλ::Float64
 		trace::Array{Float64, 2}
