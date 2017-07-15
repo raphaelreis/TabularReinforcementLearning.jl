@@ -4,7 +4,7 @@ makedocs(modules = [TabularReinforcementLearning],
 	     clean = false,
 		 format = :html,
 		 sitename = "Tabular Reinforcement Learning",
-# 		 linkcheck = !("skiplinks" in ARGS),
+ 		 linkcheck = !("skiplinks" in ARGS),
 		 pages = [ "Introduction" => "index.md", 
 				   "Usage" => "usage.md",
 				   "Reference" => ["Comparison" => "comparison.md",
@@ -20,6 +20,9 @@ makedocs(modules = [TabularReinforcementLearning],
 		)
 
 deploydocs(
-    repo = "github.com/jbrea/TabularReinforcementLearning.jl.git"
-	julia = "0.6"
+    repo = "github.com/jbrea/TabularReinforcementLearning.jl.git",
+	julia = "0.6",
+	target = "build",
+    deps = nothing,
+	make = nothing,
 )
