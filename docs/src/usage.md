@@ -58,4 +58,4 @@ res2 = getvalue(x2.metric)
 See section [Comparison](comparison).
 ## Examples
 
-See [examples](https://github.com/jbrea/TabularReinforcementLearning.jl/examples).
+See [examples](https://github.com/jbrea/TabularReinforcementLearning.jl/tree/master/examples).
