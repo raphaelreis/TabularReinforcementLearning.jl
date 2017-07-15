@@ -65,6 +65,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "comparison/#",
+    "page": "Comparison",
+    "title": "Comparison",
+    "category": "page",
+    "text": ""
+},
+
+{
     "location": "comparison/#TabularReinforcementLearning.compare",
     "page": "Comparison",
     "title": "TabularReinforcementLearning.compare",
@@ -81,10 +89,10 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "comparison/#",
+    "location": "comparison/#comparison-1",
     "page": "Comparison",
-    "title": "Comparison",
-    "category": "page",
+    "title": "Comparison Tools",
+    "category": "section",
     "text": "Since the comparison tools depend on the packages DataFrames and PyPlot they are not loaded automatically. To use them call loadcomparisontools() or individually loadcompare() and loadplotcomparison().Modules = [TabularReinforcementLearning]\nPages   = [\"comparisontools.jl\"]"
 },
 
@@ -189,6 +197,14 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "Learners",
     "category": "page",
+    "text": ""
+},
+
+{
+    "location": "learners/#learners-1",
+    "page": "Learners",
+    "title": "Learners",
+    "category": "section",
     "text": ""
 },
 
@@ -425,6 +441,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "policies/#policies-1",
+    "page": "Policies",
+    "title": "Policies",
+    "category": "section",
+    "text": ""
+},
+
+{
     "location": "policies/#TabularReinforcementLearning.EpsilonGreedyPolicy",
     "page": "Policies",
     "title": "TabularReinforcementLearning.EpsilonGreedyPolicy",
@@ -485,6 +509,14 @@ var documenterSearchIndex = {"docs": [
     "page": "Environments",
     "title": "Environments",
     "category": "page",
+    "text": ""
+},
+
+{
+    "location": "mdp/#mdp-1",
+    "page": "Environments",
+    "title": "Environments",
+    "category": "section",
     "text": "To use other environment, please have a look at the API"
 },
 
@@ -601,6 +633,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "metrics/#",
+    "page": "Evaluation Metrics",
+    "title": "Evaluation Metrics",
+    "category": "page",
+    "text": ""
+},
+
+{
     "location": "metrics/#TabularReinforcementLearning.AllRewards",
     "page": "Evaluation Metrics",
     "title": "TabularReinforcementLearning.AllRewards",
@@ -713,11 +753,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "metrics/#",
+    "location": "metrics/#metrics-1",
     "page": "Evaluation Metrics",
     "title": "Evaluation Metrics",
-    "category": "page",
+    "category": "section",
     "text": "Modules = [TabularReinforcementLearning]\nPages   = [\"metrics.jl\"]"
+},
+
+{
+    "location": "stop/#",
+    "page": "Stopping Criteria",
+    "title": "Stopping Criteria",
+    "category": "page",
+    "text": ""
 },
 
 {
@@ -753,11 +801,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "stop/#",
+    "location": "stop/#stop-1",
     "page": "Stopping Criteria",
     "title": "Stopping Criteria",
-    "category": "page",
+    "category": "section",
     "text": "Modules = [TabularReinforcementLearning]\nPages   = [\"stoppingcriterion.jl\"]"
+},
+
+{
+    "location": "callbacks/#",
+    "page": "Callbacks",
+    "title": "Callbacks",
+    "category": "page",
+    "text": ""
 },
 
 {
@@ -809,10 +865,10 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "callbacks/#",
+    "location": "callbacks/#callbacks-1",
     "page": "Callbacks",
     "title": "Callbacks",
-    "category": "page",
+    "category": "section",
     "text": "Modules = [TabularReinforcementLearning]\nPages   = [\"callbacks.jl\"]"
 },
 
@@ -913,7 +969,7 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "api/#Environments-1",
+    "location": "api/#api_environments-1",
     "page": "API",
     "title": "Environments",
     "category": "section",
