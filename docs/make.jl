@@ -21,4 +21,5 @@ makedocs(modules = [TabularReinforcementLearning],
 
 deploydocs(
     repo = "github.com/jbrea/TabularReinforcementLeanring.jl.git"
+	julia = "0.6"
 )
