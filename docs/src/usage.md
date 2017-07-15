@@ -1,9 +1,9 @@
 ## Simple usage
 
 1. Define an [`Agent`](@ref).
-2. Choose an [environment](mdp).
-3. Choose a [metric](metrics).
-4. Choose a [stopping criterion](stop).
+2. Choose an [environment](@ref mdp).
+3. Choose a [metric](@ref metrics).
+4. Choose a [stopping criterion](@ref stop).
 5. (Optionally) define an [`RLSetup`](@ref).
 6. Learn with [`learn!`](@ref).
 7. Look at results with [`getvalue`](@ref).
@@ -22,11 +22,11 @@ getvalue(metric)
 
 ## Advanced Usage
 
-1. Define an [`Agent`](@ref) by choosing one of the [learners](learners), one of the
-   [policies](policies) and one of the [callbacks](callbacks) (e.g. to have an
+1. Define an [`Agent`](@ref) by choosing one of the [learners](@ref learners), one of the
+   [policies](@ref policies) and one of the [callbacks](@ref callbacks) (e.g. to have an
    exploration schedule).
-2. Choose an [environment](mdp) or define the [interaction with a custom
-   environment](api/#environments).
+2. Choose an [environment](@ref mdp) or define the [interaction with a custom
+   environment](@ref api_environments).
 3. ( - 7.) as above.
 8. (Optionally) compare with optimal solution.
 
@@ -55,7 +55,7 @@ res2 = getvalue(x2.metric)
 
 ## Comparisons
 
-See section [Comparison](comparison).
+See section [`Comparison`](@ref comparison).
 ## Examples
 
 See [examples](https://github.com/jbrea/TabularReinforcementLearning.jl/tree/master/examples).

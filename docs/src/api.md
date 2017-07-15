@@ -28,7 +28,7 @@ getactionprobabilities
 callback!
 ```
 
-# Environments
+# [Environments](@id api_environments)
 ```@docs
 interact!
 ```

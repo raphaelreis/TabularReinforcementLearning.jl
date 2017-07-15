@@ -99,7 +99,7 @@ function isbreak! end
 
 Return `true` if `criterion` is matched.
 See [`ConstantNumberSteps`](@ref) and [`ConstantNumberEpisodes`](@ref) for
-builtin criterions and [example]({examples/extendstoppingcriterion.jl}) for how
+builtin criterions and [example](https://github.com/jbrea/TabularReinforcementLearning.jl/blob/master/examples/definestopcriterion.jl) for how
 to define new criterions.
 """ isbreak!
 export isbreak!
