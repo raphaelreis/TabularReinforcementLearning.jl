@@ -124,19 +124,23 @@ function futurediscountedcheckinf(γ, value, learner)
 end
 
 function futurediscountedvalue(learner::QLearning, γ, nextstate, nextaction)
-	futurediscountedcheckinf(γ, maximumbelowInf(learner.params[:, nextstate]),
+	futurediscountedcheckinf(γ, maximumbelowInf(getvalue(learner.params, nextstate)),
 							 learner)
 end
 function futurediscountedvalue(learner::Sarsa, γ, nextstate, nextaction)
-	futurediscountedcheckinf(γ, learner.params[nextaction, nextstate], learner)
+	futurediscountedcheckinf(γ, 
+							 getvalue(learner.params, nextaction, nextstate), 
+							 learner)
 end
 function futurediscountedvalue(learner::ExpectedSarsa, γ, nextstate, nextaction)
 	actionprobabilites = getactionprobabilities(learner.policy,
-												learner.params[:, nextstate])
+												getvalue(learner.params,
+														 nextstate))
 	m = 0.
 	for (a, w) in enumerate(actionprobabilites)
 		if w != 0.
-			m += w * futurediscountedcheckinf(γ, learner.params[a, nextstate],
+			m += w * futurediscountedcheckinf(γ, getvalue(learner.params, a,
+														  nextstate),
 											  learner)
 		 end
 	end
@@ -144,9 +148,14 @@ function futurediscountedvalue(learner::ExpectedSarsa, γ, nextstate, nextaction
 end
 
 function gettderror(learner, r, s, a, nexts, nexta, isterminal)
-	r + 
-	(isterminal ? 0 : futurediscountedvalue(learner, learner.γ, nexts, nexta)) -
-	(learner.params[a, s] == Inf64 ? 0. : learner.params[a, s])
+	δ = r
+	if !isterminal
+		δ += futurediscountedvalue(learner, learner.γ, nexts, nexta)
+	end
+	if getvalue(learner.params, a, s) != Inf64
+		δ -= getvalue(learner.params, a, s)
+	end
+	δ
 end
 function getnsteptderror(rewards::Array{Float64, 1}, γ, value1, valueend, 
 						 isterminal)
@@ -165,7 +174,7 @@ function getnsteptderror(learner, rewards, states, actions, isterminal)
 	getnsteptderror(rewards, 
 					learner.γ, 
 					(learner.params[actions[1], states[1]] == Inf64 ? 0. : 
-						learner.params[actions[1], states[1]]),
+						getvalue(learner.params, actions[1], states[1])),
 					futurediscountedvalue(learner, 1., states[end], actions[end]),
 					isterminal)
 end
@@ -181,7 +190,7 @@ function update!(learner::AbstractTDLearner, r, s, a, nexts, nexta, isterminal)
 	δ = gettderror(learner, r, s, a, nexts, nexta, isterminal)
 	update!(learner, s, a, δ, isterminal)
 end
-function update!(learner::AbstractTDLearner, s::Int64, a::Int64, δ, isterminal)
+function update!(learner::AbstractTDLearner, s, a::Int64, δ, isterminal)
 	updatetraceandparams!(learner.traces, learner, s, a, δ)
 	if isterminal; resettraces!(learner.traces); end
 end
@@ -194,6 +203,10 @@ function updateparam!(learner, s, a, α, Δ)
 	else
 		learner.params[a, s] += α * Δ
 	end
+end
+function updateparam!(learner, s::Array{Float64, 1}, a, α, Δ)
+	na, ns = size(learner.params)
+	BLAS.axpy!(α * Δ, s, 1:ns, learner.params, a:na:na * (ns - 1) + a)
 end
 
 function updatetraceandparams!(trace::NoTraces, learner, s, a, δ)

@@ -51,16 +51,29 @@ mutable struct RLSetup
 end
 export RLSetup
 
+function getvalue(params::Array{Float64, 2}, state::Int64)
+	params[:, state]
+end
+function getvalue(params::Array{Float64, 2}, action::Int64, state::Int64)
+	params[action, state]
+end
+function getvalue(params::Array{Float64, 2}, state::Array{Float64, 1})
+	params * state
+end
+function getvalue(params::Array{Float64, 2}, action::Int64, state::Array{Float64, 1})
+	dot(params[action, :], state)
+end
+
 act(agent::Agent, state) = act(agent.learner, agent.policy, state) 
 function act(learner::Union{AbstractTDLearner, AbstractPolicyGradient}, 
 			 policy::Union{AbstractEpsilonGreedyPolicy, AbstractSoftmaxPolicy},
 			 state)
-	act(policy, learner.params[:, state])
+	act(policy, getvalue(learner.params, state))
 end
 function act(learner::SmallBackups, 
 			 policy::Union{AbstractEpsilonGreedyPolicy, SoftmaxPolicy},
 			 state)
-	act(policy, learner.Q[:, state])
+	act(policy, getvalue(learner.Q, state))
 end
 function act(learner::MDPLearner, policy::AbstractEpsilonGreedyPolicy, state)
 	if rand() < policy.ϵ
@@ -113,7 +126,7 @@ function run!(learner, policy, callback,
 		evaluate!(metric, r, a0, s0, iss0terminal)
 		callback!(callback, learner, policy, r, a0, s0, iss0terminal)
 		if isbreak!(stop, r, a0, s0, iss0terminal); break; end
-		s0 = s1
+		s0 = deepcopy(s1)
 		a0 = a1
 		iss0terminal = iss1terminal
 	end
