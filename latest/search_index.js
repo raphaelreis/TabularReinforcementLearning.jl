@@ -21,7 +21,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Introduction",
     "title": "Installation",
     "category": "section",
-    "text": "julia v0.6:Pkg.clone(\"https://github.com/jbrea/TabularReinforcementLearning.jl\")julia v0.5:Pkg.clone(\"https://github.com/jbrea/TabularReinforcementLearning.jl\")\nPkg.checkout(\"TabularReinforcementLearning\", branch = \"v0.5\")If you want to use the utilities compare and  plotcomparison make sure that DataFrames and PyPlot is installed.Pkg.add(\"DataFrames\") \nPkg.add(\"PyPlot\")"
+    "text": "julia v0.6:Pkg.clone(\"https://github.com/jbrea/TabularReinforcementLearning.jl\")julia v0.5:Pkg.clone(\"https://github.com/jbrea/TabularReinforcementLearning.jl\")\nPkg.checkout(\"TabularReinforcementLearning\", \"v0.5\")If you want to use the utilities compare and  plotcomparison make sure that DataFrames and PyPlot is installed.Pkg.add(\"DataFrames\") \nPkg.add(\"PyPlot\")"
 },
 
 {
@@ -877,6 +877,14 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "API",
     "category": "page",
+    "text": ""
+},
+
+{
+    "location": "api/#API-1",
+    "page": "API",
+    "title": "API",
+    "category": "section",
     "text": "New learners, policies, callbacks, environments, evaluation metrics or stopping criteria need to implement the following functions."
 },
 
