@@ -182,7 +182,7 @@ function getdetmdp(; ns = 10^4, na = 10)
 	mdp
 end
 function getdettreemdp(; na = 4, depth = 5)
-	mdp = tMDP(na, depth, init = "deterministic")
+	mdp = treeMDP(na, depth, init = "deterministic")
 end
 function getdettreemdpwithinrew(; args...)
 	mdp = getdettmdp(; args...)
@@ -191,7 +191,7 @@ function getdettreemdpwithinrew(; args...)
 	mdp
 end
 function getstochtreemdp(; na = 4, depth = 4, bf = 2)
-	mdp = tMDP(na, depth, init = "random", branchingfactor = bf)
+	mdp = treeMDP(na, depth, init = "random", branchingfactor = bf)
 	mdp
 end
 getstochmdp(; na = 10, ns = 50) = MDP(ns, na)

@@ -12,11 +12,14 @@ reward `r`, observing next state `s1` and performing next action `a1`. The
 boolean `iss0terminal` is `true` if `s0` is a terminal state.
 
 
-	update!(learner::TabularReinforcementLearning.AbstractReinforcementLearner, 
+	update!(learner::Union{NstepLearner, EpisodicLearner}, 
+			baselearner::TabularReinforcementLearning.AbstractReinforcementLearner, 
 			rewards, states, actions, isterminal)
 
-Update `learner` after observing `n+1` `states`, performing `n+1` `actions`, receiving
-`n` rewards. The boolean `isterminal` is `true` if `states[end-1]` is a terminal state.
+Update `baselearner` with arrays of maximally `n+1` `states`, `n+1` `actions`,
+`n` rewards, if `learner` is [`NstepLearner`](@ref). If `learner` is
+[`EpisodicLearner`](@ref) the arrays grow until the end of an episode.
+The boolean `isterminal` is `true` if `states[end-1]` is a terminal state.
 """ update!
 export update!
 

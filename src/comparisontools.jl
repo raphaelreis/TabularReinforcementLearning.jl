@@ -50,9 +50,9 @@ average of size `smoothingwindow` (default: no smoothing).
 
 loadcompare() = include("$(dirname(@__FILE__))/compare.jl")
 loadplotcomparison() = include("$(dirname(@__FILE__))/plotcomparison.jl")
-function loadcomparetools()
+function loadcomparisontools()
 	loadcompare()
 	loadplotcomparison()
 end
-export loadcompare, loadplotcomparison, loadcomparetools, compare, plotcomparison
+export loadcompare, loadplotcomparison, loadcomparisontools, compare, plotcomparison
 

@@ -20,7 +20,7 @@ function makeuniquenames(agents)
 	ids
 end
 
-function compare(N, env, metric, stopcrit, agents...)
+function compare(N, env, metric, stopcrit, agents...; verbose = false)
 	L = length(agents)
 	learnerids = makeuniquenames(agents)
 	valuetype = typeof(getvalue(metric))
@@ -29,7 +29,9 @@ function compare(N, env, metric, stopcrit, agents...)
 	for t in 1:N
 		seed = rand(1:typemax(UInt64)-1) 
 		for i in 1:L
-			print("round $t: $(learnerids[i]) with seed $seed ")
+			if verbose
+				print("round $t: $(learnerids[i]) with seed $seed ")
+			end
 			srand(seed)
 			reset!(metric)
 			if typeof(env) <: Function
@@ -38,9 +40,9 @@ function compare(N, env, metric, stopcrit, agents...)
 				environment = env
 				reset!(environment)
 			end
-			print("started ... ")
+			if verbose; print("started ... "); end
 			learn!(agents[i](), environment, metric, stopcrit)
-			println("finished")
+			if verbose; println("finished"); end
 			push!(results, [learnerids[i], getvalue(metric), seed])
 		end
 	end
