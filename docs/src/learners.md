@@ -1,3 +1,5 @@
+# [Learners](@id learners)
+
 ## TD Learner
 ```@autodocs
 Modules = [TabularReinforcementLearning]

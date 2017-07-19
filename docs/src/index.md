@@ -15,7 +15,7 @@ julia v0.6:
 julia v0.5:
 
 	Pkg.clone("https://github.com/jbrea/TabularReinforcementLearning.jl")
-	Pkg.checkout("TabularReinforcementLearning", branch = "v0.5")
+	Pkg.checkout("TabularReinforcementLearning", "v0.5")
 
 
 If you want to use the utilities [`compare`](@ref) and 

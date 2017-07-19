@@ -2,11 +2,11 @@ abstract AbstractMultistepLearner <: AbstractReinforcementLearner
 """
 	type NstepLearner <: AbstractReinforcementLearner
 		nsteps::Int64
-		learner::Union{AbstractTDLearner, AbstractPolicyGradient}
+		learner::AbstractReinforcementLearner
 """
 type NstepLearner <: AbstractMultistepLearner
 	nsteps::Int64
-	learner::Union{AbstractTDLearner, AbstractPolicyGradient}
+	learner::AbstractReinforcementLearner
 end
 """
 	NstepLearner(; nsteps = 10, learner = Sarsa, kwargs...) = 
@@ -18,8 +18,9 @@ export NstepLearner
 
 """
 	type EpisodicLearner <: AbstractMultistepLearner
-		learner::Union{AbstractTDLearner, AbstractPolicyGradient}
+		learner::AbstractReinforcementLearner
 """
 type EpisodicLearner <: AbstractMultistepLearner
-	learner::Union{AbstractTDLearner, AbstractPolicyGradient}
+	learner::AbstractReinforcementLearner
 end
+export EpisodicLearner

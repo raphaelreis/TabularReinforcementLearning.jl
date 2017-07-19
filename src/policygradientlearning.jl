@@ -158,9 +158,6 @@ function update!(::EpisodicLearner, learner, rewards, states, actions, istermina
 						   learner.α * gammaeff * δ)
 		end
 		copy!(learner.params, tmp)
-		empty!(rewards)
-		deleteat!(states, 1:length(states) - 1)	
-		deleteat!(actions, 1:length(actions) - 1)	
 	else
 		if learner.params[actions[end], states[end]] == Inf64
 			learner.params[actions[end], states[end]] = 0.

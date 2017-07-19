@@ -11,11 +11,10 @@ type Agent
 end
 export Agent
 """
-	Agent(learner::Union{AbstractTDLearner, SmallBackups}; policy = EpsilonGreedyPolicy(.1),  callback = NoCallback())
+	Agent(learner; policy = EpsilonGreedyPolicy(.1),  callback = NoCallback())
 """
-Agent(learner::Union{AbstractTDLearner, SmallBackups}; 
-	  policy = EpsilonGreedyPolicy(.1),
-	  callback = NoCallback()) = Agent(learner, policy, callback)
+Agent(learner; policy = EpsilonGreedyPolicy(.1), callback = NoCallback()) = 
+	Agent(learner, policy, callback)
 """
 	Agent(learner::AbstractPolicyGradient; policy = SoftmaxPolicy1(), callback = NoCallback())
 """
@@ -30,10 +29,10 @@ AbstractPolicyGradient.
 """
 function Agent(learner::AbstractMultistepLearner; 
 			   policy = EpsilonGreedyPolicy(.1), callback = NoCallback())
-	if typeof(learner.learner) <: AbstractTDLearner
-		Agent(learner, policy, callback)
-	elseif typeof(learner.learner) <: AbstractPolicyGradient
+	if typeof(learner.learner) <: AbstractPolicyGradient
 		Agent(learner, SoftmaxPolicy1(), callback)
+	else
+		Agent(learner, policy, callback)
 	end
 end
 """
@@ -166,6 +165,11 @@ function run!(learner::AbstractMultistepLearner, policy, callback,
 			 (length(rewards) == learner.nsteps || 
 				(ret > 1 && length(actions) > 1))
 			shift!(actions); shift!(states); shift!(rewards)
+		end
+		if typeof(learner) == EpisodicLearner && ret > 2
+			empty!(rewards)
+			deleteat!(states, 1:length(states) - 1)	
+			deleteat!(actions, 1:length(actions) - 1)
 		end
 		if (ret == 2 || ret == 4) && 
 			(length(actions) == 1 || typeof(learner) == EpisodicLearner)

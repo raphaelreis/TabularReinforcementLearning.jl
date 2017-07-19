@@ -1,3 +1,5 @@
+# [Policies](@id policies)
+
 ## Epsilon Greedy Policies
 ```@autodocs
 Modules = [TabularReinforcementLearning]

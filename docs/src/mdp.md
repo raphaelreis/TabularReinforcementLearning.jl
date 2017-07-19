@@ -1,4 +1,6 @@
-To use other environment, please have a look at the [API](api/#environments)
+# [Environments](@id mdp)
+
+To use other environment, please have a look at the [API](@ref api_environments)
 
 ## Markov Decision Processes (MDPs)
 ```@autodocs
