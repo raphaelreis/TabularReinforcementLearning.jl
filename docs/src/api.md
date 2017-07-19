@@ -1,7 +1,9 @@
+# API
+
 New learners, policies, callbacks, environments, evaluation metrics or stopping
 criteria need to implement the following functions.
 
-# Learners
+## Learners
 Learners that require only a (state, action, reward) triple and possibly the
 next state and action should implement the first definition. If the learner is
 also to be used with a NstepLearner one also needs to implement the second 
@@ -14,7 +16,7 @@ update!
 act(learner, policy, state)
 ```
 
-# Policies
+## Policies
 ```@docs
 act(policy, values)
 ```
@@ -23,12 +25,12 @@ act(policy, values)
 getactionprobabilities
 ```
 
-# Callbacks
+## Callbacks
 ```@docs
 callback!
 ```
 
-# [Environments](@id api_environments)
+## [Environments](@id api_environments)
 ```@docs
 interact!
 ```
@@ -41,7 +43,7 @@ getstate
 reset!
 ```
 
-# Evaluation Metrics
+## Evaluation Metrics
 ```@docs
 evaluate!
 ```
@@ -50,7 +52,7 @@ evaluate!
 getvalue
 ```
 
-# Stopping Criteria
+## Stopping Criteria
 ```@docs
 isbreak!
 ```
