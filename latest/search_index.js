@@ -105,6 +105,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "learning/#TabularReinforcementLearning.Agent-Tuple{Any}",
+    "page": "Learning",
+    "title": "TabularReinforcementLearning.Agent",
+    "category": "Method",
+    "text": "Agent(learner; policy = EpsilonGreedyPolicy(.1),  callback = NoCallback())\n\n\n\n"
+},
+
+{
     "location": "learning/#TabularReinforcementLearning.Agent-Tuple{TabularReinforcementLearning.AbstractMultistepLearner}",
     "page": "Learning",
     "title": "TabularReinforcementLearning.Agent",
@@ -118,14 +126,6 @@ var documenterSearchIndex = {"docs": [
     "title": "TabularReinforcementLearning.Agent",
     "category": "Method",
     "text": "Agent(learner::AbstractPolicyGradient; policy = SoftmaxPolicy1(), callback = NoCallback())\n\n\n\n"
-},
-
-{
-    "location": "learning/#TabularReinforcementLearning.Agent-Tuple{Union{TabularReinforcementLearning.AbstractTDLearner, TabularReinforcementLearning.SmallBackups}}",
-    "page": "Learning",
-    "title": "TabularReinforcementLearning.Agent",
-    "category": "Method",
-    "text": "Agent(learner::Union{AbstractTDLearner, SmallBackups}; policy = EpsilonGreedyPolicy(.1),  callback = NoCallback())\n\n\n\n"
 },
 
 {
@@ -385,11 +385,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "learners/#TabularReinforcementLearning.EpisodicLearner",
+    "page": "Learners",
+    "title": "TabularReinforcementLearning.EpisodicLearner",
+    "category": "Type",
+    "text": "struct EpisodicLearner <: AbstractMultistepLearner\n	learner::AbstractReinforcementLearner\n\n\n\n"
+},
+
+{
     "location": "learners/#TabularReinforcementLearning.NstepLearner",
     "page": "Learners",
     "title": "TabularReinforcementLearning.NstepLearner",
     "category": "Type",
-    "text": "struct NstepLearner <: AbstractReinforcementLearner\n	nsteps::Int64\n	learner::Union{AbstractTDLearner, AbstractPolicyGradient}\n\n\n\n"
+    "text": "struct NstepLearner <: AbstractReinforcementLearner\n	nsteps::Int64\n	learner::AbstractReinforcementLearner\n\n\n\n"
 },
 
 {
@@ -398,14 +406,6 @@ var documenterSearchIndex = {"docs": [
     "title": "TabularReinforcementLearning.NstepLearner",
     "category": "Method",
     "text": "NstepLearner(; nsteps = 10, learner = Sarsa, kwargs...) = \n	NstepLearner(nsteps, learner(; kwargs...))\n\n\n\n"
-},
-
-{
-    "location": "learners/#TabularReinforcementLearning.EpisodicLearner",
-    "page": "Learners",
-    "title": "TabularReinforcementLearning.EpisodicLearner",
-    "category": "Type",
-    "text": "struct EpisodicLearner <: AbstractMultistepLearner\n	learner::Union{AbstractTDLearner, AbstractPolicyGradient}\n\n\n\n"
 },
 
 {
@@ -893,7 +893,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "TabularReinforcementLearning.update!",
     "category": "Function",
-    "text": "update!(learner::TabularReinforcementLearning.AbstractReinforcementLearner, \n		r, s0, a0, s1, a1, iss0terminal)\n\nUpdate learner after observing state s0, performing action a0, receiving reward r, observing next state s1 and performing next action a1. The boolean iss0terminal is true if s0 is a terminal state.\n\nupdate!(learner::TabularReinforcementLearning.AbstractReinforcementLearner, \n		rewards, states, actions, isterminal)\n\nUpdate learner after observing n+1 states, performing n+1 actions, receiving n rewards. The boolean isterminal is true if states[end-1] is a terminal state.\n\n\n\n"
+    "text": "update!(learner::TabularReinforcementLearning.AbstractReinforcementLearner, \n		r, s0, a0, s1, a1, iss0terminal)\n\nUpdate learner after observing state s0, performing action a0, receiving reward r, observing next state s1 and performing next action a1. The boolean iss0terminal is true if s0 is a terminal state.\n\nupdate!(learner::Union{NstepLearner, EpisodicLearner}, \n		baselearner::TabularReinforcementLearning.AbstractReinforcementLearner, \n		rewards, states, actions, isterminal)\n\nUpdate baselearner with arrays of maximally n+1 states, n+1 actions, n rewards, if learner is NstepLearner. If learner is EpisodicLearner the arrays grow until the end of an episode. The boolean isterminal is true if states[end-1] is a terminal state.\n\n\n\n"
 },
 
 {
