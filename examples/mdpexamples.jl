@@ -185,9 +185,9 @@ function getdettreemdp(; na = 4, depth = 5)
 	mdp = treeMDP(na, depth, init = "deterministic")
 end
 function getdettreemdpwithinrew(; args...)
-	mdp = getdettmdp(; args...)
+	mdp = getdettreemdp(; args...)
 	nonterminals = find(1 - mdp.isterminal)
-	mdp.reward[:, nonterminals] = randn(mdp.n_of_actions, length(nonterminals))
+	mdp.reward[:, nonterminals] = randn(mdp.na, length(nonterminals))
 	mdp
 end
 function getstochtreemdp(; na = 4, depth = 4, bf = 2)
