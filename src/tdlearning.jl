@@ -174,7 +174,8 @@ function update!(::NstepLearner, learner::AbstractTDLearner,
 				 rewards, states, actions, isterminal)
 # 	if isterminal || length(rewards) == learner.nsteps
 		δ = getnsteptderror(learner, rewards, states, actions, isterminal)
-		update!(learner, states[1], actions[1], δ, isterminal)
+		update!(learner, states[1], actions[1], δ, 
+				isterminal && length(states) == 2)
 # 	end
 end
 function update!(learner::AbstractTDLearner, r, s, a, nexts, nexta, isterminal) 
@@ -182,12 +183,16 @@ function update!(learner::AbstractTDLearner, r, s, a, nexts, nexta, isterminal)
 	update!(learner, s, a, δ, isterminal)
 end
 function update!(learner::AbstractTDLearner, s::Int64, a::Int64, δ, isterminal)
-	updatetraceandparams!(learner.traces, learner, s, a, δ)
-	if isterminal; resettraces!(learner.traces); end
+	updatetraceandparams!(learner.traces, learner, s, a, δ, isterminal)
 end
 
 export update!
 
+function updateterminalstate!(learner, s, δ)
+	for a in 1:size(learner.params, 1)
+		updateparam!(learner, s, a, learner.α, δ)
+	end
+end
 function updateparam!(learner, s, a, α, Δ)
 	if learner.params[a, s] == Inf64
 		learner.params[a, s] = Δ
@@ -196,12 +201,16 @@ function updateparam!(learner, s, a, α, Δ)
 	end
 end
 
-function updatetraceandparams!(trace::NoTraces, learner, s, a, δ)
-	updateparam!(learner, s, a, learner.α, δ)
+function updatetraceandparams!(trace::NoTraces, learner, s, a, δ, isterminal)
+	if isterminal
+		updateterminalstate!(learner, s, δ)
+	else
+		updateparam!(learner, s, a, learner.α, δ)
+	end
 end
 
-function updatetraceandparams!(trace, learner, state, action, δ)
-	increasetrace!(learner.traces, state, action)
+function updatetraceandparams!(trace, learner, state, action, δ, isterminal)
+	increasetrace!(learner.traces, state, action, isterminal)
 	updatetraceandparams!(learner.traces, learner.params, learner.α * δ)
 	if learner.params[action, state] == Inf64
 		learner.params[action, state] = δ
