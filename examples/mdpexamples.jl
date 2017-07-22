@@ -118,8 +118,8 @@ function mazetomdp(maze)
 	ns = length(nzpos)
 	T = Array{SparseVector}(na, ns)
 	goals = rand(1:ns)
-	R = zeros(na, ns)
-	R[:, goals] .= 10.
+	R = -ones(na, ns)
+	R[:, goals] .= 0.
 	isterminal = zeros(Int64, ns); isterminal[goals] = 1
 	isinitial = collect(1:ns); splice!(isinitial, goals)
 	for s in 1:ns
@@ -178,7 +178,7 @@ end
 # random MDPs
 function getdetmdp(; ns = 10^4, na = 10)
 	mdp = MDP(ns, na, init = "deterministic")
-	mdp.reward = mdp.reward .* (mdp.reward .> 1.5)
+	mdp.reward = mdp.reward .* (mdp.reward .< -1.5)
 	mdp
 end
 function getdettreemdp(; na = 4, depth = 5)
@@ -187,7 +187,7 @@ end
 function getdettreemdpwithinrew(; args...)
 	mdp = getdettreemdp(; args...)
 	nonterminals = find(1 - mdp.isterminal)
-	mdp.reward[:, nonterminals] = randn(mdp.na, length(nonterminals))
+	mdp.reward[:, nonterminals] = -rand(mdp.na, length(nonterminals))
 	mdp
 end
 function getstochtreemdp(; na = 4, depth = 4, bf = 2)
@@ -202,7 +202,7 @@ function getabsorbingdetmdp(;ns = 10^3, na = 10)
 	mdp.state = rand(mdp.isinitial)
 	setterminalstates!(mdp, ns - div(ns, 100) + 1:ns)
 	for s in find(mdp.isterminal)
-		mdp.reward[:, s] .= 10*rand()
+		mdp.reward[:, s] .= 0.
 	end
 	mdp
 end
