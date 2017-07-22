@@ -56,18 +56,26 @@ pair and ``e(a, s) ←  γλ e(a, s)`` for all other pairs unless
 	AccumulatingTraces(ns, na, λ::Float64, γ::Float64; minimaltracevalue = 1e-12)
 """ AccumulatingTraces()
 
-function updatetrace!(traces, state, action)
+function updatetrace!(traces, state, action, isterminal)
 	discounttraces!(traces)
-	increasetrace!(traces, state, action)
+	increasetrace!(traces, state, action, isterminal)
 end
 
-function increasetrace!(traces::NoTraces, state, action)
+function increasetrace!(traces::NoTraces, state, action, isterminal)
 end
-function increasetrace!(traces::ReplacingTraces, state, action)
-	traces.trace[action, state] = 1.
+function increasetrace!(traces::ReplacingTraces, state, action, isterminal)
+	if isterminal
+		traces.trace[:, state] = 1.
+	else
+		traces.trace[action, state] = 1.
+	end
 end
-function increasetrace!(traces::AccumulatingTraces, state, action)
-	traces.trace[action, state] += 1.
+function increasetrace!(traces::AccumulatingTraces, state, action, isterminal)
+	if isterminal
+		traces.trace[:, state] += 1.
+	else
+		traces.trace[action, state] += 1.
+	end
 end
 
 function discounttraces!(traces)

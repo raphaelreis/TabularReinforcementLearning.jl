@@ -41,10 +41,8 @@ never performed before, the behavior of the
 		ϵ::Float64
 
 [`EpsilonGreedyPolicy`](@ref) that samples uniformly from novel actions in each
-state where actions are available that where never chosen before. For Q-value
-based methods (e.g. [`QLearning`](@ref) or [`SmallBackups`](@ref)) the most
-optimistic behavior is to choose `initvalue` = 1/(1 - γ) * rmax where rmax is
-the maximal value ever returned by the environment.
+state where actions are available that where never chosen before. See also 
+[Initial values, novel actions and unseen values](@ref initunseen).
 """ VeryOptimisticEpsilonGreedyPolicy
 
 @doc """

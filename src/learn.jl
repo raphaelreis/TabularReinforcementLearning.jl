@@ -65,12 +65,12 @@ end
 
 act(agent::Agent, state) = act(agent.learner, agent.policy, state) 
 function act(learner::Union{AbstractTDLearner, AbstractPolicyGradient}, 
-			 policy::Union{AbstractEpsilonGreedyPolicy, AbstractSoftmaxPolicy},
+			 policy::AbstractPolicy,
 			 state)
 	act(policy, getvalue(learner.params, state))
 end
 function act(learner::SmallBackups, 
-			 policy::Union{AbstractEpsilonGreedyPolicy, SoftmaxPolicy},
+			 policy::AbstractPolicy,
 			 state)
 	act(policy, getvalue(learner.Q, state))
 end
@@ -132,6 +132,9 @@ function run!(learner, policy, callback,
 end
 export run!, learn!
 
+# TODO: make nstep nicer.
+# also: above the order is update!, evaluate!, callback!, isbreak!
+#       here it is evaluate!, callback!, isbreak!, update!
 function step!(learner, policy, callback, env,
 			   rewards, states, actions, iss0terminal, 
 			   nsteps, metric, stop)
