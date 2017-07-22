@@ -213,7 +213,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.ExpectedSarsa",
     "category": "Type",
-    "text": "mutable struct ExpectedSarsa <: AbstractTDLearner\n	α::Float64\n	γ::Float64\n	params::Array{Float64, 2}\n	traces::AbstractTraces\n	policy::AbstractPolicy\n\nExpected Sarsa Learner with learning rate α, discount factor γ,  Q-values params and eligibility traces.\n\nThe Q-values are updated according to Q(a s)    e(a s) where  = r +  sum_a pi(a s) Q(a s) - Q(a s)  with next state s, probability pi(a s) of choosing action a in next state s and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
+    "text": "mutable struct ExpectedSarsa <: AbstractTDLearner\n	α::Float64\n	γ::Float64\n	unseenvalue::Float64\n	params::Array{Float64, 2}\n	traces::AbstractTraces\n	policy::AbstractPolicy\n\nExpected Sarsa Learner with learning rate α, discount factor γ,  Q-values params and eligibility traces.\n\nThe Q-values are updated according to Q(a s)    e(a s) where  = r +  sum_a pi(a s) Q(a s) - Q(a s)  with next state s, probability pi(a s) of choosing action a in next state s and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
 },
 
 {
@@ -221,7 +221,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.ExpectedSarsa",
     "category": "Method",
-    "text": "ExpectedSarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n					 tracekind = ReplacingTraces, initvalue = Inf64,\n					 policy = VeryOptimisticEpsilonGreedyPolicy(.1))\n\nSet initvalue to the maximal reward to have optimistic exploration. initvalue = Inf64 treats novel actions in a special way (see VeryOptimisticEpsilonGreedyPolicy) but substitutes all Inf64 with 0 in td-error.\n\n\n\n"
+    "text": "ExpectedSarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n				tracekind = ReplacingTraces, initvalue = Inf64,\n				unseenvalue = 0.,\n				policy = VeryOptimisticEpsilonGreedyPolicy(.1))\n\nSee also  Initial values, novel actions and unseen values.\n\n\n\n"
 },
 
 {
@@ -229,7 +229,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.QLearning",
     "category": "Type",
-    "text": "mutable struct QLearning <: AbstractTDLearner\n	α::Float64\n	γ::Float64\n	params::Array{Float64, 2}\n	traces::AbstractTraces\n\nQLearner with learning rate α, discount factor γ, Q-values params and eligibility traces.\n\nThe Q-values are updated \"off-policy\" according to Q(a s)    e(a s) where  = r +  max_a Q(a s) - Q(a s) with next state s and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
+    "text": "mutable struct QLearning <: AbstractTDLearner\n	α::Float64\n	γ::Float64\n	unseenvalue::Float64\n	params::Array{Float64, 2}\n	traces::AbstractTraces\n\nQLearner with learning rate α, discount factor γ, Q-values params and eligibility traces.\n\nThe Q-values are updated \"off-policy\" according to Q(a s)    e(a s) where  = r +  max_a Q(a s) - Q(a s) with next state s and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
 },
 
 {
@@ -237,7 +237,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.QLearning",
     "category": "Method",
-    "text": "QLearning(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n			tracekind = ReplacingTraces, initvalue = Inf64)\n\nSet initvalue to the maximal reward to have optimistic exploration. initvalue = Inf64 treats novel actions in a special way (see VeryOptimisticEpsilonGreedyPolicy) but substitutes all Inf64 with 0 in td-error.\n\n\n\n"
+    "text": "QLearning(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n			tracekind = ReplacingTraces, initvalue = Inf64, unseenvalue = 0.)\n\nSee also  Initial values, novel actions and unseen values.\n\n\n\n"
 },
 
 {
@@ -245,7 +245,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.Sarsa",
     "category": "Type",
-    "text": "mutable struct Sarsa <: AbstractTDLearner\n	α::Float64\n	γ::Float64\n	params::Array{Float64, 2}\n	traces::AbstractTraces\n\nSarsa Learner with learning rate α, discount factor γ, Q-values params and eligibility traces.\n\nThe Q-values are updated \"on-policy\" according to Q(a s)    e(a s) where  = r +  Q(a s) - Q(a s) with next state s, next action a and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
+    "text": "mutable struct Sarsa <: AbstractTDLearner\n	α::Float64\n	γ::Float64\n	unseenvalue::Float64\n	params::Array{Float64, 2}\n	traces::AbstractTraces\n\nSarsa Learner with learning rate α, discount factor γ, Q-values params and eligibility traces.\n\nThe Q-values are updated \"on-policy\" according to Q(a s)    e(a s) where  = r +  Q(a s) - Q(a s) with next state s, next action a and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
 },
 
 {
@@ -253,7 +253,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.Sarsa",
     "category": "Method",
-    "text": "Sarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n		tracekind = ReplacingTraces, initvalue = Inf64)\n\nSet initvalue to the maximal reward to have optimistic exploration. initvalue = Inf64 treats novel actions in a special way (see VeryOptimisticEpsilonGreedyPolicy) but substitutes all Inf64 with 0 in td-error.\n\n\n\n"
+    "text": "Sarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n		tracekind = ReplacingTraces, initvalue = Inf64, unseenvalue = 0.)\n\nSee also  Initial values, novel actions and unseen values.\n\n\n\n"
 },
 
 {
@@ -302,6 +302,14 @@ var documenterSearchIndex = {"docs": [
     "title": "TD Learner",
     "category": "section",
     "text": "Modules = [TabularReinforcementLearning]\nPages   = [\"tdlearning.jl\", \"traces.jl\"]"
+},
+
+{
+    "location": "learners/#initunseen-1",
+    "page": "Learners",
+    "title": "Initial values, novel actions and unseen values",
+    "category": "section",
+    "text": "For td-error dependent methods, The exploration-exploitation trade-off depends in the initvalue and the unseenvalue.  To distinguish actions that were never choosen before, i.e. novel actions, the default initial Q-value (field param) is initvalue = Inf64. In a state with novel actions, the policy determines how to deal with novel actions. To compute the td-error the unseenvalue is used for states with novel actions.  One way to achieve agressively exploratory behavior is to assure that unseenvalue is larger than the largest possible Q-value."
 },
 
 {
@@ -421,7 +429,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.SmallBackups",
     "category": "Type",
-    "text": "mutable struct SmallBackups <: AbstractReinforcementLearner\n	γ::Float64\n	maxcount::UInt64\n	counter::Int64\n	Q::Array{Float64, 2}\n	Qprev::Array{Float64, 2}\n	V::Array{Float64, 1}\n	Nsa::Array{Int64, 2}\n	Ns1a0s0::Array{Dict{Tuple{Int64, Int64}, Int64}, 1}\n	queue::PriorityQueue\n\nSee Harm Van Seijen, Rich Sutton ; Proceedings of the 30th International Conference on Machine Learning, PMLR 28(3):361-369, 2013.\n\nSmallBackups(; ns = 10, na = 4, γ = .9, initvalue = Inf64, maxcount = 3)\n\nSet initvalue to the maximal reward to have optimistic exploration. initvalue = Inf64 treats novel actions in a special way (see VeryOptimisticEpsilonGreedyPolicy) but substitutes all Inf64 with 0 in td-error.\n\n\n\n"
+    "text": "mutable struct SmallBackups <: AbstractReinforcementLearner\n	γ::Float64\n	maxcount::UInt64\n	minpriority::Float64\n	counter::Int64\n	Q::Array{Float64, 2}\n	Qprev::Array{Float64, 2}\n	V::Array{Float64, 1}\n	Nsa::Array{Int64, 2}\n	Ns1a0s0::Array{Dict{Tuple{Int64, Int64}, Int64}, 1}\n	queue::PriorityQueue\n\nSee Harm Van Seijen, Rich Sutton ; Proceedings of the 30th International Conference on Machine Learning, PMLR 28(3):361-369, 2013.\n\nmaxcount defines the maximal number of backups per action, minpriority is the smallest priority still added to the queue.\n\n\n\n"
+},
+
+{
+    "location": "learners/#TabularReinforcementLearning.SmallBackups-Tuple{}",
+    "page": "Learners",
+    "title": "TabularReinforcementLearning.SmallBackups",
+    "category": "Method",
+    "text": "SmallBackups(; ns = 10, na = 4, γ = .9, initvalue = Inf64, maxcount = 3,  				   minpriority = 1e-8)\n\n\n\n"
 },
 
 {
@@ -477,7 +493,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Policies",
     "title": "TabularReinforcementLearning.VeryOptimisticEpsilonGreedyPolicy",
     "category": "Type",
-    "text": "mutable struct VeryOptimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy\n	ϵ::Float64\n\nEpsilonGreedyPolicy that samples uniformly from novel actions in each state where actions are available that where never chosen before. For Q-value based methods (e.g. QLearning or SmallBackups) the most optimistic behavior is to choose initvalue = 1/(1 - γ) * rmax where rmax is the maximal value ever returned by the environment.\n\n\n\n"
+    "text": "mutable struct VeryOptimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy\n	ϵ::Float64\n\nEpsilonGreedyPolicy that samples uniformly from novel actions in each state where actions are available that where never chosen before. See also  Initial values, novel actions and unseen values.\n\n\n\n"
 },
 
 {
