@@ -13,7 +13,7 @@ end
 		NstepLearner(nsteps, learner(; kwargs...))
 """
 NstepLearner(; nsteps = 10, learner = Sarsa, kwargs...) = 
-	NstepLearner(nsteps, learner(; kwargs...))
+	NstepLearner(nsteps, learner(; λ = 0, kwargs...))
 export NstepLearner
 
 """

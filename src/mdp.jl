@@ -121,7 +121,7 @@ function treeMDP(na, depth;
 	r = zeros(na, cns[end])
 	isterminal = zeros(cns[end])
 	for s in cns[end-1]+1:cns[end]
-		r[:, s] .= randn()
+		r[:, s] .= -rand()
 		isterminal[s] = 1
 	end
 	MDP(cns[end], na, 1, T, r, 1:1, isterminal)
