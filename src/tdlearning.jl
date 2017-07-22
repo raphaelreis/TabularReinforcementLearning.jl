@@ -190,6 +190,7 @@ function update!(learner::AbstractTDLearner, r, s, a, nexts, nexta, isterminal)
 end
 function update!(learner::AbstractTDLearner, s::Int64, a::Int64, δ, isterminal)
 	updatetraceandparams!(learner.traces, learner, s, a, δ, isterminal)
+	if isterminal; reset!(learner.traces); end
 end
 
 export update!
