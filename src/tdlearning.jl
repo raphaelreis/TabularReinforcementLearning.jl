@@ -3,13 +3,15 @@ for kind in (:QLearning, :Sarsa)
 		mutable struct $kind <: AbstractTDLearner
 			α::Float64
 			γ::Float64
+			unseenvalue::Float64
 			params::Array{Float64, 2}
 			traces::AbstractTraces
 		end; 
 		export $kind
 		function $kind(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
-						   tracekind = ReplacingTraces, initvalue = Inf64)
-				$kind(α, γ, zeros(na, ns) .+ initvalue,
+						   tracekind = ReplacingTraces, initvalue = Inf64,
+						   unseenvalue = 0.)
+				$kind(α, γ, unseenvalue, zeros(na, ns) .+ initvalue,
 					  λ == 0. || tracekind == NoTraces ? NoTraces() : 
 						tracekind(ns, na, λ, γ))
 		  end
@@ -20,6 +22,7 @@ end
 	mutable struct QLearning <: AbstractTDLearner
 		α::Float64
 		γ::Float64
+		unseenvalue::Float64
 		params::Array{Float64, 2}
 		traces::AbstractTraces
 
@@ -34,16 +37,15 @@ where ``δ = r + γ \\max_{a'} Q(a', s') - Q(a, s)`` with next state ``s'`` and
 """ QLearning
 @doc """
 	QLearning(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
-				tracekind = ReplacingTraces, initvalue = Inf64)
+				tracekind = ReplacingTraces, initvalue = Inf64, unseenvalue = 0.)
 
-Set `initvalue` to the maximal reward to have optimistic exploration.
-`initvalue = Inf64` treats novel actions in a special way (see
-[`VeryOptimisticEpsilonGreedyPolicy`](@ref)) but substitutes all `Inf64` with `0` in td-error.
+See also  [Initial values, novel actions and unseen values](@ref initunseen).
 """ QLearning()
 @doc """
 	mutable struct Sarsa <: AbstractTDLearner
 		α::Float64
 		γ::Float64
+		unseenvalue::Float64
 		params::Array{Float64, 2}
 		traces::AbstractTraces
 
@@ -58,17 +60,16 @@ where ``δ = r + γ Q(a', s') - Q(a, s)`` with next state ``s'``, next action
 """ Sarsa
 @doc """
 	Sarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
-			tracekind = ReplacingTraces, initvalue = Inf64)
+			tracekind = ReplacingTraces, initvalue = Inf64, unseenvalue = 0.)
 
-Set `initvalue` to the maximal reward to have optimistic exploration.
-`initvalue = Inf64` treats novel actions in a special way (see
-[`VeryOptimisticEpsilonGreedyPolicy`](@ref)) but substitutes all `Inf64` with `0` in td-error.
+See also  [Initial values, novel actions and unseen values](@ref initunseen).
 """ Sarsa()
 
 """
 	mutable struct ExpectedSarsa <: AbstractTDLearner
 		α::Float64
 		γ::Float64
+		unseenvalue::Float64
 		params::Array{Float64, 2}
 		traces::AbstractTraces
 		policy::AbstractPolicy
@@ -86,6 +87,7 @@ next state ``s'`` and ``e(a, s)`` is the eligibility trace (see [`NoTraces`](@re
 mutable struct ExpectedSarsa <: AbstractTDLearner
 	α::Float64
 	γ::Float64
+	unseenvalue::Float64
 	params::Array{Float64, 2}
 	traces::AbstractTraces
 	policy::AbstractPolicy
@@ -93,17 +95,17 @@ end
 export ExpectedSarsa
 """
 	ExpectedSarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
-						 tracekind = ReplacingTraces, initvalue = Inf64,
-						 policy = VeryOptimisticEpsilonGreedyPolicy(.1))
+					tracekind = ReplacingTraces, initvalue = Inf64,
+					unseenvalue = 0.,
+					policy = VeryOptimisticEpsilonGreedyPolicy(.1))
 
-Set `initvalue` to the maximal reward to have optimistic exploration.
-`initvalue = Inf64` treats novel actions in a special way (see
-[`VeryOptimisticEpsilonGreedyPolicy`](@ref)) but substitutes all `Inf64` with `0` in td-error.
+See also  [Initial values, novel actions and unseen values](@ref initunseen).
 """
 function ExpectedSarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
 						 tracekind = ReplacingTraces, initvalue = Inf64,
+						 unseenvalue = 0, 
 						 policy = VeryOptimisticEpsilonGreedyPolicy(.1))
-	ExpectedSarsa(α, γ, zeros(na, ns) .+ initvalue,
+	ExpectedSarsa(α, γ, unseenvalue, zeros(na, ns) .+ initvalue,
 					  λ == 0. || tracekind == NoTraces ? NoTraces() : 
 					  tracekind(ns, na, λ, γ), policy)
 end
@@ -111,13 +113,8 @@ end
 
 function futurediscountedcheckinf(γ, value, learner)
 	if value == Inf64
-#		TODO: This is more exploratory; breaks the test in tdlearning.jl 		
-# 		tmp = maximumbelowInf(learner.params) + 1.
-# 		if tmp < Inf64
-# 			γ * tmp # this is encouraging unknown states
-# 		else
-			0.
-# 		end
+#		TODO: unseenvalue could be updated through a callback	
+		γ * learner.unseenvalue
 	else
 		γ * value
 	end
@@ -164,8 +161,8 @@ end
 function getnsteptderror(learner, rewards, states, actions, isterminal)
 	getnsteptderror(rewards, 
 					learner.γ, 
-					(learner.params[actions[1], states[1]] == Inf64 ? 0. : 
-						learner.params[actions[1], states[1]]),
+					(learner.params[actions[1], states[1]] == Inf64 ?
+					 0 : learner.params[actions[1], states[1]]),
 					futurediscountedvalue(learner, 1., states[end], actions[end]),
 					isterminal)
 end

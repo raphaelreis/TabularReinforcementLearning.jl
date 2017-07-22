@@ -5,6 +5,15 @@
 Modules = [TabularReinforcementLearning]
 Pages   = ["tdlearning.jl", "traces.jl"]
 ```
+### [Initial values, novel actions and unseen values](@id initunseen)
+For td-error dependent methods, The exploration-exploitation trade-off depends
+in the `initvalue` and the `unseenvalue`.  To distinguish actions that were
+never choosen before, i.e. novel actions, the default initial Q-value (field
+`param`) is `initvalue = Inf64`. In a state with novel actions, the
+[policy](@ref policies) determines how to deal with novel actions. To compute
+the td-error the `unseenvalue` is used for states with novel actions.  One way
+to achieve agressively exploratory behavior is to assure that `unseenvalue` is
+larger than the largest possible Q-value.
 
 ## Policy Gradient Learner
 ```@autodocs
