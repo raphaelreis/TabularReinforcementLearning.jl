@@ -5,6 +5,7 @@ smooth(vals, w) = [mean(vals[i:i+w]) for i in 1:length(vals) - w]
 function plotcomparison(results; 
 						labelsdict = Dict(), 
 						colors = [],
+						maxsamples = 10,
 						thin = .1,
 						thick = 2,
 						smoothingwindow = 0)
@@ -24,11 +25,13 @@ function plotcomparison(results;
 				m = TabularReinforcementLearning.smooth(m, smoothingwindow)
 			end
 			plot(m, label = labels[i], linewidth = thick, color = colors[i])
-			for v in g[:value]
-				if smoothingwindow > 0
-					v = TabularReinforcementLearning.smooth(v, smoothingwindow)
+			if thin > 0
+				for v in g[:value][1:min(length(g[:value]), maxsamples)]
+					if smoothingwindow > 0
+						v = TabularReinforcementLearning.smooth(v, smoothingwindow)
+					end
+					plot(v, linewidth = thin, color = colors[i])
 				end
-				plot(v, linewidth = thin, color = colors[i])
 			end
 			plt[:legend]()
 		end
