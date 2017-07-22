@@ -180,17 +180,14 @@ function update!(::NstepLearner, learner::AbstractTDLearner,
 				 rewards, states, actions, isterminal)
 # 	if isterminal || length(rewards) == learner.nsteps
 		δ = getnsteptderror(learner, rewards, states, actions, isterminal)
-		update!(learner, states[1], actions[1], δ, 
-				isterminal && length(states) == 2)
+		updatetraceandparams!(learner.traces, learner, 
+							  states[1], actions[1], δ, 
+							  isterminal && length(states) == 2)
 # 	end
 end
 function update!(learner::AbstractTDLearner, r, s, a, nexts, nexta, isterminal) 
 	δ = gettderror(learner, r, s, a, nexts, nexta, isterminal)
-	update!(learner, s, a, δ, isterminal)
-end
-function update!(learner::AbstractTDLearner, s::Int64, a::Int64, δ, isterminal)
 	updatetraceandparams!(learner.traces, learner, s, a, δ, isterminal)
-	if isterminal; reset!(learner.traces); end
 end
 
 export update!
@@ -226,6 +223,7 @@ function updatetraceandparams!(trace, learner, state, action, δ, isterminal)
 	if learner.params[action, state] == Inf64
 		learner.params[action, state] = δ
 	end
+	if isterminal; resettraces!(learner.traces); end
 end
 
  
