@@ -24,7 +24,7 @@ Pages   = ["policygradientlearning.jl"]
 ## N-step Learner
 ```@autodocs
 Modules = [TabularReinforcementLearning]
-Pages   = ["nsteplearner.jl"]
+Pages   = ["nsteplearner.jl", "montecarlo.jl"]
 ```
 
 ## Model Based Learner
