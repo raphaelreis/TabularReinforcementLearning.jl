@@ -417,11 +417,27 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "learners/#TabularReinforcementLearning.MonteCarlo",
+    "page": "Learners",
+    "title": "TabularReinforcementLearning.MonteCarlo",
+    "category": "Type",
+    "text": "mutable struct MonteCarlo <: AbstractReinforcementLearner\n	Nsa::Array{Int64, 2}\n	γ::Float64\n	Q::Array{Float64, 2}\n\nEstimate Q values by averaging over returns.\n\n\n\n"
+},
+
+{
+    "location": "learners/#TabularReinforcementLearning.MonteCarlo-Tuple{}",
+    "page": "Learners",
+    "title": "TabularReinforcementLearning.MonteCarlo",
+    "category": "Method",
+    "text": "MonteCarlo(; ns = 10, na = 4, γ = .9)\n\n\n\n"
+},
+
+{
     "location": "learners/#N-step-Learner-1",
     "page": "Learners",
     "title": "N-step Learner",
     "category": "section",
-    "text": "Modules = [TabularReinforcementLearning]\nPages   = [\"nsteplearner.jl\"]"
+    "text": "Modules = [TabularReinforcementLearning]\nPages   = [\"nsteplearner.jl\", \"montecarlo.jl\"]"
 },
 
 {
