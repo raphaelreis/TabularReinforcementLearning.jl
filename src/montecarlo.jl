@@ -1,12 +1,12 @@
 """
-	mutable struct MonteCarlo <: AbstractReinforcementLearner
+	type MonteCarlo <: AbstractReinforcementLearner
 		Nsa::Array{Int64, 2}
 		γ::Float64
 		Q::Array{Float64, 2}
 
 Estimate Q values by averaging over returns.
 """
-mutable struct MonteCarlo <: AbstractReinforcementLearner
+type MonteCarlo <: AbstractReinforcementLearner
 	Nsa::Array{Int64, 2}
 	γ::Float64
 	Q::Array{Float64, 2}
