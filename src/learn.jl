@@ -69,7 +69,7 @@ function act(learner::Union{AbstractTDLearner, AbstractPolicyGradient},
 			 state)
 	act(policy, getvalue(learner.params, state))
 end
-function act(learner::SmallBackups, 
+function act(learner::Union{SmallBackups, MonteCarlo}, 
 			 policy::AbstractPolicy,
 			 state)
 	act(policy, getvalue(learner.Q, state))
