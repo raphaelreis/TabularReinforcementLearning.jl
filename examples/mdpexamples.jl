@@ -135,11 +135,27 @@ function mazetomdp(maze)
 	MDP(ns, na, rand(1:ns), T, R, isinitial, isterminal), goals, nzpos
 end
 
+function breaksomewalls(m; f = 1/50, 
+						n = div(length(find(1 - m[2:end-1, 2:end-1])), 1/f))
+	nx, ny = size(m)
+	zeros = find(1 - m)
+	i = 1
+	while i < n
+		candidate = rand(zeros)
+		if candidate > nx && candidate < nx * (ny - 1) &&
+			candidate % nx != 0 && candidate % nx != 1
+			m[candidate] = 1
+			i += 1
+		end
+	end
+end
+	
 function getmazemdp(; nx = 40, ny = 40, returnall = false, 
 					  nwalls = div(nx*ny, 10), 
-						offset = 0.)
+					  offset = 0.)
 	m = getemptymaze(nx, ny)
 	[addrandomwall!(m) for _ in 1:nwalls]
+	breaksomewalls(m)
 	mdp, goal, mapping = mazetomdp(m)
 	mdp.reward .+= offset
 	if returnall
@@ -161,7 +177,7 @@ function plotmazemdp(maze, goal, state, mapping;
 	maze[mapping[goal]] = 3
 	maze[mapping[state]] = 2
 	figure(figsize = (4, 4))
-	cmap = matcolors.ListedColormap(["black", "white", "blue", "red"], "A")
+	cmap = matcolors.ListedColormap(["gray", "white", "blue", "red"], "A")
 	if showvalues
 		m = zeros(size(maze)...)
 		m[mapping] .= values
