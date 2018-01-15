@@ -34,7 +34,7 @@ Example
 
 ```julia
 learner = QLearning(na = 5, ns = 500, λ = .8, γ = .95,
-					tracekind = ReplacingTraces, initvalue = 10.)
+                    tracekind = ReplacingTraces, initvalue = 10.)
 policy = EpsilonGreedyPolicy(.2)
 callback = ReduceEpsilonPerT(10^4)
 agent = Agent(learner, policy, callback)
@@ -48,7 +48,7 @@ mdpl = MDPLearner(env, .95)
 policy_iteration!(mdpl)
 reset!(env)
 x2 = RLSetup(Agent(mdpl, EpsilonGreedyPolicy(.2), ReduceEpsilonPerT(10^4)), 
-			 env, EvaluationPerT(10^4), ConstantNumberSteps(10^6))
+             env, EvaluationPerT(10^4), ConstantNumberSteps(10^6))
 run!(x2)
 res2 = getvalue(x2.metric)
 ```

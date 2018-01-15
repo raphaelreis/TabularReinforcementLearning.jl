@@ -8,8 +8,8 @@ learn!(x)
 tmp = zeros(na, mdp.ns) + Inf64
 i = depth
 for (a, s) in zip(metric.a, metric.s)
-	tmp[a, s] = α * (1 - 1/na) * metric.r[end] * γ^i
-	i -= 1
+    tmp[a, s] = α * (1 - 1/na) * metric.r[end] * γ^i
+    i -= 1
 end
 @test learner.params ≈ tmp
 

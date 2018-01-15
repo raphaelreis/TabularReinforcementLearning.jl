@@ -4,17 +4,17 @@ abstract type AbstractTDLearner <: AbstractReinforcementLearner end
 abstract type AbstractPolicyGradient <: AbstractReinforcementLearner end
 function update! end
 @doc """
-	update!(learner::TabularReinforcementLearning.AbstractReinforcementLearner, 
-			r, s0, a0, s1, a1, iss0terminal)
+    update!(learner::TabularReinforcementLearning.AbstractReinforcementLearner, 
+            r, s0, a0, s1, a1, iss0terminal)
 
 Update `learner` after observing state `s0`, performing action `a0`, receiving
 reward `r`, observing next state `s1` and performing next action `a1`. The
 boolean `iss0terminal` is `true` if `s0` is a terminal state.
 
 
-	update!(learner::Union{NstepLearner, EpisodicLearner}, 
-			baselearner::TabularReinforcementLearning.AbstractReinforcementLearner, 
-			rewards, states, actions, isterminal)
+    update!(learner::Union{NstepLearner, EpisodicLearner}, 
+            baselearner::TabularReinforcementLearning.AbstractReinforcementLearner, 
+            rewards, states, actions, isterminal)
 
 Update `baselearner` with arrays of maximally `n+1` `states`, `n+1` `actions`,
 `n` rewards, if `learner` is [`NstepLearner`](@ref). If `learner` is
@@ -29,31 +29,31 @@ abstract type AbstractEpsilonGreedyPolicy <: AbstractPolicy end
 abstract type AbstractSoftmaxPolicy <: AbstractPolicy end
 function act end
 @doc """
-	act(learner::TabularReinforcementLearning.AbstractReinforcementLearner,
-		policy::TabularReinforcementLearning.AbstractPolicy,
-		state)
+    act(learner::TabularReinforcementLearning.AbstractReinforcementLearner,
+        policy::TabularReinforcementLearning.AbstractPolicy,
+        state)
 
 Returns an action for a `learner`, using `policy` in `state`.
 """ act(learner, policy, state)
 @doc """
-	act(policy::TabularReinforcementLearning.AbstractPolicy, values)
+    act(policy::TabularReinforcementLearning.AbstractPolicy, values)
 
 Returns an action given an array of `values` (one value for each possible action) 
 using `policy`.
 """ act(policy, values)
 function getactionprobabilities end
 @doc """
-	getactionprobabilities(policy::TabularReinforcementLearning.AbstractPolicy, values)
+    getactionprobabilities(policy::TabularReinforcementLearning.AbstractPolicy, values)
 
 Returns a array of action probabilities for a given array of `values` 
 (one value for each possible action) and `policy`.
-"""	getactionprobabilities
+""" getactionprobabilities
 export act, getactionprobabilities
 
 # environment
 function interact! end
 @doc """
-	interact!(action, environment)
+    interact!(action, environment)
 
 Updates the `environment` and returns the triple `state`, `reward`, `isterminal`, 
 where `state` is the new state of the environment (an integer), `reward` is the
@@ -62,13 +62,13 @@ reward obtained for the performed `action` and `isterminal` is `true` if the
 """ interact!
 function getstate end
 @doc """
-	getstate(environment)
+    getstate(environment)
 
 Returns the tuple `state`, `isterminal`. See also [`interact!(action, environment)`](@ref).
 """ getstate
 function reset! end
 @doc """
-	reset!(environment)
+    reset!(environment)
 
 Resets the `environment` to a possible initial state.
 """ reset!
@@ -79,8 +79,8 @@ abstract type AbstractEvaluationMetrics end
 abstract type SimpleEvaluationMetric <: AbstractEvaluationMetrics end
 function evaluate! end
 @doc """
-	evaluate!(metric::TabularReinforcementLearning.AbstractEvaluationMetrics, 
-			  reward, action, state, isterminal)
+    evaluate!(metric::TabularReinforcementLearning.AbstractEvaluationMetrics, 
+              reward, action, state, isterminal)
 
 Updates the `metric` based on the experienced (`reward`, `action`, `state`)
 triplet and the boolean `isterminal` that is `true` if `state` is terminal.
@@ -88,7 +88,7 @@ triplet and the boolean `isterminal` that is `true` if `state` is terminal.
 """ evaluate!
 function getvalue end
 @doc """
-	getvalue(metric)
+    getvalue(metric)
 
 Returns the value of a metric.
 """ getvalue
@@ -98,7 +98,7 @@ export evaluate!, getvalue
 abstract type StoppingCriterion end
 function isbreak! end
 @doc """
-	isbreak!(criterion::TabularReinforcementLearning.StoppingCriterion, r, a, s, isterminal)
+    isbreak!(criterion::TabularReinforcementLearning.StoppingCriterion, r, a, s, isterminal)
 
 Return `true` if `criterion` is matched.
 See [`ConstantNumberSteps`](@ref) and [`ConstantNumberEpisodes`](@ref) for
@@ -111,7 +111,7 @@ export isbreak!
 abstract type AbstractCallback end
 function callback! end
 @doc """
-	callback!(callback::AbstractCallback, learner, policy, r, a, s, isterminal)
+    callback!(callback::AbstractCallback, learner, policy, r, a, s, isterminal)
 
 Can be used to manipulate the learner or the policy during learning, e.g. to
 change the learning rate or the exploration rate.

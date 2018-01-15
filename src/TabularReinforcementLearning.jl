@@ -20,7 +20,7 @@ include("stoppingcriterion.jl")
 include("callbacks.jl")
 include("learn.jl")
 include("comparisontools.jl")
-	
+    
 
 end # module
 # TODO:
