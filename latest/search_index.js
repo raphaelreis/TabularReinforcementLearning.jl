@@ -45,7 +45,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Usage",
     "title": "Advanced Usage",
     "category": "section",
-    "text": "Define an Agent by choosing one of the learners, one of the policies and one of the callbacks (e.g. to have an exploration schedule).\nChoose an environment or define the interaction with a custom environment.\n( - 7.) as above.\n(Optionally) compare with optimal solution.Examplelearner = QLearning(na = 5, ns = 500, λ = .8, γ = .95,\n					tracekind = ReplacingTraces, initvalue = 10.)\npolicy = EpsilonGreedyPolicy(.2)\ncallback = ReduceEpsilonPerT(10^4)\nagent = Agent(learner, policy, callback)\nenv = MDP(na = 5, ns = 500, init = \"deterministic\")\nmetric = EvaluationPerT(10^4)\nstop = ConstantNumberSteps(10^6)\nx = RLSetup(agent, env, metric, stop)\n@time learn!(x)\nres = getvalue(metric)\nmdpl = MDPLearner(env, .95)\npolicy_iteration!(mdpl)\nreset!(env)\nx2 = RLSetup(Agent(mdpl, EpsilonGreedyPolicy(.2), ReduceEpsilonPerT(10^4)), \n			 env, EvaluationPerT(10^4), ConstantNumberSteps(10^6))\nrun!(x2)\nres2 = getvalue(x2.metric)"
+    "text": "Define an Agent by choosing one of the learners, one of the policies and one of the callbacks (e.g. to have an exploration schedule).\nChoose an environment or define the interaction with a custom environment.\n( - 7.) as above.\n(Optionally) compare with optimal solution.Examplelearner = QLearning(na = 5, ns = 500, λ = .8, γ = .95,\n                    tracekind = ReplacingTraces, initvalue = 10.)\npolicy = EpsilonGreedyPolicy(.2)\ncallback = ReduceEpsilonPerT(10^4)\nagent = Agent(learner, policy, callback)\nenv = MDP(na = 5, ns = 500, init = \"deterministic\")\nmetric = EvaluationPerT(10^4)\nstop = ConstantNumberSteps(10^6)\nx = RLSetup(agent, env, metric, stop)\n@time learn!(x)\nres = getvalue(metric)\nmdpl = MDPLearner(env, .95)\npolicy_iteration!(mdpl)\nreset!(env)\nx2 = RLSetup(Agent(mdpl, EpsilonGreedyPolicy(.2), ReduceEpsilonPerT(10^4)), \n             env, EvaluationPerT(10^4), ConstantNumberSteps(10^6))\nrun!(x2)\nres2 = getvalue(x2.metric)"
 },
 
 {
@@ -77,7 +77,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Comparison",
     "title": "TabularReinforcementLearning.compare",
     "category": "Function",
-    "text": "This function is loaded with loadcompare() (requires DataFrames).\n\ncompare(N, \n	    environment, \n		metric::AbstractEvaluationMetrics, \n		stoppingcriterion::StoppingCriterion, \n		agent1generator::Function, \n		agent2generator::Function, ...)\n\nReturns a DataFrame of N runs of all the agents on the environment. \n\nThe DataFrame has the columns :learner (a string identifying the agent), :value (the result of getvalue(metric) and :seed (the random seed used for this run). This macro requires and loads the module DataFrames (can be installed with Pkg.add(\"DataFrames\"). If environment is an environment generator function a new environment is generated N times. Otherwise the same environment is reset N times.\n\nExamples\n\nresult = compare(10, () -> MDP(), MeanReward(), ConstantNumberSteps(100), \n				 () -> Agent(QLearning(λ = 0.)), \n				 () -> Agent(QLearning(λ = .8)))\n\nThis can also be written as:\n\nmetric = MeanReward()\nstopcrit = ConstantNumberSteps(100)\npol = VeryOptimisticEpsilonGreedyPolicy(.1)\ngetnewmdp() = MDP()\ngetnewQ1() = Agent(QLearning(λ = 0.), policy = pol)\ngetnewQ2() = Agent(QLearning(λ = .8), policy = pol)\nresult = compare(10, getnewmdp, metric, stopcrit, getnewQ1, getnewQ2)\n\n\n\n"
+    "text": "This function is loaded with loadcompare() (requires DataFrames).\n\ncompare(N, \n        environment, \n        metric::AbstractEvaluationMetrics, \n        stoppingcriterion::StoppingCriterion, \n        agent1generator::Function, \n        agent2generator::Function, ...)\n\nReturns a DataFrame of N runs of all the agents on the environment. \n\nThe DataFrame has the columns :learner (a string identifying the agent), :value (the result of getvalue(metric) and :seed (the random seed used for this run). This macro requires and loads the module DataFrames (can be installed with Pkg.add(\"DataFrames\"). If environment is an environment generator function a new environment is generated N times. Otherwise the same environment is reset N times.\n\nExamples\n\nresult = compare(10, () -> MDP(), MeanReward(), ConstantNumberSteps(100), \n                 () -> Agent(QLearning(λ = 0.)), \n                 () -> Agent(QLearning(λ = .8)))\n\nThis can also be written as:\n\nmetric = MeanReward()\nstopcrit = ConstantNumberSteps(100)\npol = VeryOptimisticEpsilonGreedyPolicy(.1)\ngetnewmdp() = MDP()\ngetnewQ1() = Agent(QLearning(λ = 0.), policy = pol)\ngetnewQ2() = Agent(QLearning(λ = .8), policy = pol)\nresult = compare(10, getnewmdp, metric, stopcrit, getnewQ1, getnewQ2)\n\n\n\n"
 },
 
 {
@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learning",
     "title": "TabularReinforcementLearning.Agent",
     "category": "Type",
-    "text": "mutable struct Agent\n	learner::AbstractReinforcementLearner\n	policy::AbstractPolicy\n	callback::AbstractCallback\n\n\n\n"
+    "text": "mutable struct Agent\n    learner::AbstractReinforcementLearner\n    policy::AbstractPolicy\n    callback::AbstractCallback\n\n\n\n"
 },
 
 {
@@ -133,7 +133,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learning",
     "title": "TabularReinforcementLearning.RLSetup",
     "category": "Type",
-    "text": "mutable struct RLSetup\n	agent::Agent\n	environment\n	metric::AbstractEvaluationMetrics\n	stoppingcriterion::StoppingCriterion\n\n\n\n"
+    "text": "mutable struct RLSetup\n    agent::Agent\n    environment\n    metric::AbstractEvaluationMetrics\n    stoppingcriterion::StoppingCriterion\n\n\n\n"
 },
 
 {
@@ -213,7 +213,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.ExpectedSarsa",
     "category": "Type",
-    "text": "mutable struct ExpectedSarsa <: AbstractTDLearner\n	α::Float64\n	γ::Float64\n	unseenvalue::Float64\n	params::Array{Float64, 2}\n	traces::AbstractTraces\n	policy::AbstractPolicy\n\nExpected Sarsa Learner with learning rate α, discount factor γ,  Q-values params and eligibility traces.\n\nThe Q-values are updated according to Q(a s)    e(a s) where  = r +  sum_a pi(a s) Q(a s) - Q(a s)  with next state s, probability pi(a s) of choosing action a in next state s and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
+    "text": "mutable struct ExpectedSarsa <: AbstractTDLearner\n    α::Float64\n    γ::Float64\n    unseenvalue::Float64\n    params::Array{Float64, 2}\n    traces::AbstractTraces\n    policy::AbstractPolicy\n\nExpected Sarsa Learner with learning rate α, discount factor γ,  Q-values params and eligibility traces.\n\nThe Q-values are updated according to Q(a s)    e(a s) where  = r +  sum_a pi(a s) Q(a s) - Q(a s)  with next state s, probability pi(a s) of choosing action a in next state s and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
 },
 
 {
@@ -221,7 +221,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.ExpectedSarsa",
     "category": "Method",
-    "text": "ExpectedSarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n				tracekind = ReplacingTraces, initvalue = Inf64,\n				unseenvalue = 0.,\n				policy = VeryOptimisticEpsilonGreedyPolicy(.1))\n\nSee also  Initial values, novel actions and unseen values.\n\n\n\n"
+    "text": "ExpectedSarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n                tracekind = ReplacingTraces, initvalue = Inf64,\n                unseenvalue = 0.,\n                policy = VeryOptimisticEpsilonGreedyPolicy(.1))\n\nSee also  Initial values, novel actions and unseen values.\n\n\n\n"
 },
 
 {
@@ -229,7 +229,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.QLearning",
     "category": "Type",
-    "text": "mutable struct QLearning <: AbstractTDLearner\n	α::Float64\n	γ::Float64\n	unseenvalue::Float64\n	params::Array{Float64, 2}\n	traces::AbstractTraces\n\nQLearner with learning rate α, discount factor γ, Q-values params and eligibility traces.\n\nThe Q-values are updated \"off-policy\" according to Q(a s)    e(a s) where  = r +  max_a Q(a s) - Q(a s) with next state s and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
+    "text": "mutable struct QLearning <: AbstractTDLearner\n    α::Float64\n    γ::Float64\n    unseenvalue::Float64\n    params::Array{Float64, 2}\n    traces::AbstractTraces\n\nQLearner with learning rate α, discount factor γ, Q-values params and eligibility traces.\n\nThe Q-values are updated \"off-policy\" according to Q(a s)    e(a s) where  = r +  max_a Q(a s) - Q(a s) with next state s and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
 },
 
 {
@@ -237,7 +237,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.QLearning",
     "category": "Method",
-    "text": "QLearning(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n			tracekind = ReplacingTraces, initvalue = Inf64, unseenvalue = 0.)\n\nSee also  Initial values, novel actions and unseen values.\n\n\n\n"
+    "text": "QLearning(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n            tracekind = ReplacingTraces, initvalue = Inf64, unseenvalue = 0.)\n\nSee also  Initial values, novel actions and unseen values.\n\n\n\n"
 },
 
 {
@@ -245,7 +245,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.Sarsa",
     "category": "Type",
-    "text": "mutable struct Sarsa <: AbstractTDLearner\n	α::Float64\n	γ::Float64\n	unseenvalue::Float64\n	params::Array{Float64, 2}\n	traces::AbstractTraces\n\nSarsa Learner with learning rate α, discount factor γ, Q-values params and eligibility traces.\n\nThe Q-values are updated \"on-policy\" according to Q(a s)    e(a s) where  = r +  Q(a s) - Q(a s) with next state s, next action a and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
+    "text": "mutable struct Sarsa <: AbstractTDLearner\n    α::Float64\n    γ::Float64\n    unseenvalue::Float64\n    params::Array{Float64, 2}\n    traces::AbstractTraces\n\nSarsa Learner with learning rate α, discount factor γ, Q-values params and eligibility traces.\n\nThe Q-values are updated \"on-policy\" according to Q(a s)    e(a s) where  = r +  Q(a s) - Q(a s) with next state s, next action a and e(a s) is the eligibility trace (see NoTraces,  ReplacingTraces and AccumulatingTraces).\n\n\n\n"
 },
 
 {
@@ -253,7 +253,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.Sarsa",
     "category": "Method",
-    "text": "Sarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n		tracekind = ReplacingTraces, initvalue = Inf64, unseenvalue = 0.)\n\nSee also  Initial values, novel actions and unseen values.\n\n\n\n"
+    "text": "Sarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, \n        tracekind = ReplacingTraces, initvalue = Inf64, unseenvalue = 0.)\n\nSee also  Initial values, novel actions and unseen values.\n\n\n\n"
 },
 
 {
@@ -261,7 +261,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.AccumulatingTraces",
     "category": "Type",
-    "text": "struct AccumulatingTraces <: AbstractTraces\n	λ::Float64\n	γλ::Float64\n	trace::Array{Float64, 2}\n	minimaltracevalue::Float64\n\nDecaying traces with factor γλ. \n\nTraces are updated according to	e(a s)   1 + e(a s) for the current action-state pair and e(a s)    e(a s) for all other pairs unless e(a s)  minimaltracevalue where the trace is set to 0  (for computational efficiency).\n\n\n\n"
+    "text": "struct AccumulatingTraces <: AbstractTraces\n    λ::Float64\n    γλ::Float64\n    trace::Array{Float64, 2}\n    minimaltracevalue::Float64\n\nDecaying traces with factor γλ. \n\nTraces are updated according to e(a s)   1 + e(a s) for the current action-state pair and e(a s)    e(a s) for all other pairs unless e(a s)  minimaltracevalue where the trace is set to 0  (for computational efficiency).\n\n\n\n"
 },
 
 {
@@ -285,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.ReplacingTraces",
     "category": "Type",
-    "text": "struct ReplacingTraces <: AbstractTraces\n	λ::Float64\n	γλ::Float64\n	trace::Array{Float64, 2}\n	minimaltracevalue::Float64\n\nDecaying traces with factor γλ. \n\nTraces are updated according to	e(a s)   1 for the current action-state pair and e(a s)    e(a s) for all other pairs unless e(a s)  minimaltracevalue where the trace is set to 0  (for computational efficiency).\n\n\n\n"
+    "text": "struct ReplacingTraces <: AbstractTraces\n    λ::Float64\n    γλ::Float64\n    trace::Array{Float64, 2}\n    minimaltracevalue::Float64\n\nDecaying traces with factor γλ. \n\nTraces are updated according to e(a s)   1 for the current action-state pair and e(a s)    e(a s) for all other pairs unless e(a s)  minimaltracevalue where the trace is set to 0  (for computational efficiency).\n\n\n\n"
 },
 
 {
@@ -317,7 +317,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.Critic",
     "category": "Type",
-    "text": "mutable struct Critic <: AbstractBiasCorrector\n	α::Float64\n	V::Array{Float64, 1}\n\n\n\n"
+    "text": "mutable struct Critic <: AbstractBiasCorrector\n    α::Float64\n    V::Array{Float64, 1}\n\n\n\n"
 },
 
 {
@@ -341,7 +341,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.PolicyGradientBackward",
     "category": "Type",
-    "text": "mutable struct PolicyGradientBackward <: AbstractPolicyGradient\n	α::Float64\n	γ::Float64\n	params::Array{Float64, 2}\n	traces::AccumulatingTraces\n	biascorrector::AbstractBiasCorrector\n\nPolicy gradient learning in the backward view.\n\nThe parameters are updated according to paramsa s +=  * r_eff * ea s where r_eff =  r for NoBiasCorrector, r_eff =  r - rmean for RewardLowpassFilterBiasCorrector and e[a, s] is the eligibility trace.\n\n\n\n"
+    "text": "mutable struct PolicyGradientBackward <: AbstractPolicyGradient\n    α::Float64\n    γ::Float64\n    params::Array{Float64, 2}\n    traces::AccumulatingTraces\n    biascorrector::AbstractBiasCorrector\n\nPolicy gradient learning in the backward view.\n\nThe parameters are updated according to paramsa s +=  * r_eff * ea s where r_eff =  r for NoBiasCorrector, r_eff =  r - rmean for RewardLowpassFilterBiasCorrector and e[a, s] is the eligibility trace.\n\n\n\n"
 },
 
 {
@@ -349,7 +349,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.PolicyGradientBackward",
     "category": "Method",
-    "text": "PolicyGradientBackward(; ns = 10, na = 4, α = .1, γ = .9, \n			   tracekind = AccumulatingTraces, initvalue = Inf64,\n			   biascorrector = NoBiasCorrector())\n\n\n\n"
+    "text": "PolicyGradientBackward(; ns = 10, na = 4, α = .1, γ = .9, \n               tracekind = AccumulatingTraces, initvalue = Inf64,\n               biascorrector = NoBiasCorrector())\n\n\n\n"
 },
 
 {
@@ -357,7 +357,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.PolicyGradientForward",
     "category": "Type",
-    "text": "mutable struct PolicyGradientForward <: AbstractPolicyGradient\n	α::Float64\n	γ::Float64\n	params::Array{Float64, 2}\n	biascorrector::AbstractBiasCorrector\n\n\n\n"
+    "text": "mutable struct PolicyGradientForward <: AbstractPolicyGradient\n    α::Float64\n    γ::Float64\n    params::Array{Float64, 2}\n    biascorrector::AbstractBiasCorrector\n\n\n\n"
 },
 
 {
@@ -373,7 +373,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.ActorCriticPolicyGradient",
     "category": "Method",
-    "text": "ActorCriticPolicyGradient(; nsteps = 1, γ = .9, ns = 10, na = 4, \n					        α = .1, αcritic = .1, initvalue = Inf64)\n\n\n\n"
+    "text": "ActorCriticPolicyGradient(; nsteps = 1, γ = .9, ns = 10, na = 4, \n                            α = .1, αcritic = .1, initvalue = Inf64)\n\n\n\n"
 },
 
 {
@@ -397,7 +397,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.EpisodicLearner",
     "category": "Type",
-    "text": "struct EpisodicLearner <: AbstractMultistepLearner\n	learner::AbstractReinforcementLearner\n\n\n\n"
+    "text": "struct EpisodicLearner <: AbstractMultistepLearner\n    learner::AbstractReinforcementLearner\n\n\n\n"
 },
 
 {
@@ -405,7 +405,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.NstepLearner",
     "category": "Type",
-    "text": "struct NstepLearner <: AbstractReinforcementLearner\n	nsteps::Int64\n	learner::AbstractReinforcementLearner\n\n\n\n"
+    "text": "struct NstepLearner <: AbstractReinforcementLearner\n    nsteps::Int64\n    learner::AbstractReinforcementLearner\n\n\n\n"
 },
 
 {
@@ -413,7 +413,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.NstepLearner",
     "category": "Method",
-    "text": "NstepLearner(; nsteps = 10, learner = Sarsa, kwargs...) = \n	NstepLearner(nsteps, learner(; kwargs...))\n\n\n\n"
+    "text": "NstepLearner(; nsteps = 10, learner = Sarsa, kwargs...) = \n    NstepLearner(nsteps, learner(; kwargs...))\n\n\n\n"
 },
 
 {
@@ -421,7 +421,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.MonteCarlo",
     "category": "Type",
-    "text": "mutable struct MonteCarlo <: AbstractReinforcementLearner\n	Nsa::Array{Int64, 2}\n	γ::Float64\n	Q::Array{Float64, 2}\n\nEstimate Q values by averaging over returns.\n\n\n\n"
+    "text": "mutable struct MonteCarlo <: AbstractReinforcementLearner\n    Nsa::Array{Int64, 2}\n    γ::Float64\n    Q::Array{Float64, 2}\n\nEstimate Q values by averaging over returns.\n\n\n\n"
 },
 
 {
@@ -445,7 +445,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.SmallBackups",
     "category": "Type",
-    "text": "mutable struct SmallBackups <: AbstractReinforcementLearner\n	γ::Float64\n	maxcount::UInt64\n	minpriority::Float64\n	counter::Int64\n	Q::Array{Float64, 2}\n	Qprev::Array{Float64, 2}\n	V::Array{Float64, 1}\n	Nsa::Array{Int64, 2}\n	Ns1a0s0::Array{Dict{Tuple{Int64, Int64}, Int64}, 1}\n	queue::PriorityQueue\n\nSee Harm Van Seijen, Rich Sutton ; Proceedings of the 30th International Conference on Machine Learning, PMLR 28(3):361-369, 2013.\n\nmaxcount defines the maximal number of backups per action, minpriority is the smallest priority still added to the queue.\n\n\n\n"
+    "text": "mutable struct SmallBackups <: AbstractReinforcementLearner\n    γ::Float64\n    maxcount::UInt64\n    minpriority::Float64\n    counter::Int64\n    Q::Array{Float64, 2}\n    Qprev::Array{Float64, 2}\n    V::Array{Float64, 1}\n    Nsa::Array{Int64, 2}\n    Ns1a0s0::Array{Dict{Tuple{Int64, Int64}, Int64}, 1}\n    queue::PriorityQueue\n\nSee Harm Van Seijen, Rich Sutton ; Proceedings of the 30th International Conference on Machine Learning, PMLR 28(3):361-369, 2013.\n\nmaxcount defines the maximal number of backups per action, minpriority is the smallest priority still added to the queue.\n\n\n\n"
 },
 
 {
@@ -453,7 +453,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Learners",
     "title": "TabularReinforcementLearning.SmallBackups",
     "category": "Method",
-    "text": "SmallBackups(; ns = 10, na = 4, γ = .9, initvalue = Inf64, maxcount = 3,  				   minpriority = 1e-8)\n\n\n\n"
+    "text": "SmallBackups(; ns = 10, na = 4, γ = .9, initvalue = Inf64, maxcount = 3,                     minpriority = 1e-8)\n\n\n\n"
 },
 
 {
@@ -485,7 +485,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Policies",
     "title": "TabularReinforcementLearning.EpsilonGreedyPolicy",
     "category": "Type",
-    "text": "mutable struct EpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy\n	ϵ::Float64\n\nChooses the action with the highest value with probability 1 - ϵ and selects an action uniformly random with probability ϵ. For states with actions that where never performed before, the behavior of the VeryOptimisticEpsilonGreedyPolicy is followed.\n\n\n\n"
+    "text": "mutable struct EpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy\n    ϵ::Float64\n\nChooses the action with the highest value with probability 1 - ϵ and selects an action uniformly random with probability ϵ. For states with actions that where never performed before, the behavior of the VeryOptimisticEpsilonGreedyPolicy is followed.\n\n\n\n"
 },
 
 {
@@ -493,7 +493,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Policies",
     "title": "TabularReinforcementLearning.OptimisticEpsilonGreedyPolicy",
     "category": "Type",
-    "text": "mutable struct OptimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy\n	ϵ::Float64\n\nEpsilonGreedyPolicy that samples uniformly from the actions with the highest Q-value and novel actions in each state where actions are available that where never chosen before. \n\n\n\n"
+    "text": "mutable struct OptimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy\n    ϵ::Float64\n\nEpsilonGreedyPolicy that samples uniformly from the actions with the highest Q-value and novel actions in each state where actions are available that where never chosen before. \n\n\n\n"
 },
 
 {
@@ -501,7 +501,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Policies",
     "title": "TabularReinforcementLearning.PesimisticEpsilonGreedyPolicy",
     "category": "Type",
-    "text": "mutable struct PesimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy\n	ϵ::Float64\n\nEpsilonGreedyPolicy that does not handle novel actions differently.\n\n\n\n"
+    "text": "mutable struct PesimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy\n    ϵ::Float64\n\nEpsilonGreedyPolicy that does not handle novel actions differently.\n\n\n\n"
 },
 
 {
@@ -509,7 +509,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Policies",
     "title": "TabularReinforcementLearning.VeryOptimisticEpsilonGreedyPolicy",
     "category": "Type",
-    "text": "mutable struct VeryOptimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy\n	ϵ::Float64\n\nEpsilonGreedyPolicy that samples uniformly from novel actions in each state where actions are available that where never chosen before. See also  Initial values, novel actions and unseen values.\n\n\n\n"
+    "text": "mutable struct VeryOptimisticEpsilonGreedyPolicy <: AbstractEpsilonGreedyPolicy\n    ϵ::Float64\n\nEpsilonGreedyPolicy that samples uniformly from novel actions in each state where actions are available that where never chosen before. See also  Initial values, novel actions and unseen values.\n\n\n\n"
 },
 
 {
@@ -525,7 +525,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Policies",
     "title": "TabularReinforcementLearning.SoftmaxPolicy",
     "category": "Type",
-    "text": "mutable struct SoftmaxPolicy <: AbstractSoftmaxPolicy\n	β::Float64\n\nChoose action a with probability\n\nfrace^beta x_asum_a e^beta x_a\n\nwhere x is a vector of values for each action. In states with actions that were never chosen before, a uniform random novel action is returned.\n\nSoftmaxPolicy(; β = 1.)\n\nReturns a SoftmaxPolicy with default β = 1.\n\n\n\n"
+    "text": "mutable struct SoftmaxPolicy <: AbstractSoftmaxPolicy\n    β::Float64\n\nChoose action a with probability\n\nfrace^beta x_asum_a e^beta x_a\n\nwhere x is a vector of values for each action. In states with actions that were never chosen before, a uniform random novel action is returned.\n\nSoftmaxPolicy(; β = 1.)\n\nReturns a SoftmaxPolicy with default β = 1.\n\n\n\n"
 },
 
 {
@@ -557,7 +557,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Environments",
     "title": "TabularReinforcementLearning.MDP",
     "category": "Type",
-    "text": "mutable struct MDP \n	ns::Int64\n	na::Int64\n	state::Int64\n	trans_probs::Array{AbstractArray, 2}\n	reward::Array{Float64, 2}\n	initialstates::Array{Int64, 1}\n	isterminal::Array{Int64, 1}\n\nA Markov Decision Process with ns states, na actions, current state, naxns - array of transition probabilites trans_props which consists for every (action, state) pair of a (potentially sparse) array that sums to 1 (see getprobvecrandom, getprobvecuniform, getprobvecdeterministic for helpers to constract the transition probabilities) naxns - array of reward, array of initial states initialstates, and ns - array of 0/1 indicating if a state is terminal.\n\n\n\n"
+    "text": "mutable struct MDP \n    ns::Int64\n    na::Int64\n    state::Int64\n    trans_probs::Array{AbstractArray, 2}\n    reward::Array{Float64, 2}\n    initialstates::Array{Int64, 1}\n    isterminal::Array{Int64, 1}\n\nA Markov Decision Process with ns states, na actions, current state, naxns - array of transition probabilites trans_props which consists for every (action, state) pair of a (potentially sparse) array that sums to 1 (see getprobvecrandom, getprobvecuniform, getprobvecdeterministic for helpers to constract the transition probabilities) naxns - array of reward, array of initial states initialstates, and ns - array of 0/1 indicating if a state is terminal.\n\n\n\n"
 },
 
 {
@@ -645,7 +645,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Environments",
     "title": "TabularReinforcementLearning.MDPLearner",
     "category": "Type",
-    "text": "struct MDPLearner\n	gamma::Float64\n	policy::Array{Int64, 1}\n	values::Array{Float64, 1}\n	mdp::MDP\n\nUsed to solve mdp with discount factor gamma.\n\n\n\n"
+    "text": "struct MDPLearner\n    gamma::Float64\n    policy::Array{Int64, 1}\n    values::Array{Float64, 1}\n    mdp::MDP\n\nUsed to solve mdp with discount factor gamma.\n\n\n\n"
 },
 
 {
@@ -677,7 +677,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Evaluation Metrics",
     "title": "TabularReinforcementLearning.AllRewards",
     "category": "Type",
-    "text": "struct AllRewards <: AbstractEvaluationMetrics\n	rewards::Array{Float64, 1}\n\nRecords all rewards.\n\n\n\n"
+    "text": "struct AllRewards <: AbstractEvaluationMetrics\n    rewards::Array{Float64, 1}\n\nRecords all rewards.\n\n\n\n"
 },
 
 {
@@ -693,7 +693,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Evaluation Metrics",
     "title": "TabularReinforcementLearning.EvaluationPerEpisode",
     "category": "Type",
-    "text": "EvaluationPerEpisode <: AbstractEvaluationMetrics\n	values::Array{Float64, 1}\n	metric::SimpleEvaluationMetric\n\nStores the value of the simple metric for each episode in values.\n\n\n\n"
+    "text": "EvaluationPerEpisode <: AbstractEvaluationMetrics\n    values::Array{Float64, 1}\n    metric::SimpleEvaluationMetric\n\nStores the value of the simple metric for each episode in values.\n\n\n\n"
 },
 
 {
@@ -709,7 +709,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Evaluation Metrics",
     "title": "TabularReinforcementLearning.EvaluationPerT",
     "category": "Type",
-    "text": "EvaluationPerT <: AbstractEvaluationMetrics\n	T::Int64\n	counter::Int64\n	values::Array{Float64, 1}\n	metric::SimpleEvaluationMetric\n\nStores the value of the simple metric after every T steps in values.\n\n\n\n"
+    "text": "EvaluationPerT <: AbstractEvaluationMetrics\n    T::Int64\n    counter::Int64\n    values::Array{Float64, 1}\n    metric::SimpleEvaluationMetric\n\nStores the value of the simple metric after every T steps in values.\n\n\n\n"
 },
 
 {
@@ -725,7 +725,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Evaluation Metrics",
     "title": "TabularReinforcementLearning.MeanReward",
     "category": "Type",
-    "text": "mutable struct MeanReward <: TabularReinforcementLearning.SimpleEvaluationMetric\n	meanreward::Float64\n	counter::Int64\n\nComputes iteratively the mean reward.\n\n\n\n"
+    "text": "mutable struct MeanReward <: TabularReinforcementLearning.SimpleEvaluationMetric\n    meanreward::Float64\n    counter::Int64\n\nComputes iteratively the mean reward.\n\n\n\n"
 },
 
 {
@@ -741,7 +741,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Evaluation Metrics",
     "title": "TabularReinforcementLearning.RecordAll",
     "category": "Type",
-    "text": "struct RecordAll <: AbstractEvaluationMetrics\n	r::Array{Float64, 1}\n	a::Array{Int64, 1}\n	s::Array{Int64, 1}\n	isterminal::Array{Bool, 1}\n\nRecords everything.\n\n\n\n"
+    "text": "struct RecordAll <: AbstractEvaluationMetrics\n    r::Array{Float64, 1}\n    a::Array{Int64, 1}\n    s::Array{Int64, 1}\n    isterminal::Array{Bool, 1}\n\nRecords everything.\n\n\n\n"
 },
 
 {
@@ -757,7 +757,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Evaluation Metrics",
     "title": "TabularReinforcementLearning.TimeSteps",
     "category": "Type",
-    "text": "mutable struct TimeSteps <: SimpleEvaluationMetric\n	counter::Int64\n\nCounts the number of timesteps the simulation is running.\n\n\n\n"
+    "text": "mutable struct TimeSteps <: SimpleEvaluationMetric\n    counter::Int64\n\nCounts the number of timesteps the simulation is running.\n\n\n\n"
 },
 
 {
@@ -773,7 +773,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Evaluation Metrics",
     "title": "TabularReinforcementLearning.TotalReward",
     "category": "Type",
-    "text": "mutable struct TotalReward <: TabularReinforcementLearning.SimpleEvaluationMetric\n	reward::Float64\n\nAccumulates all rewards.\n\n\n\n"
+    "text": "mutable struct TotalReward <: TabularReinforcementLearning.SimpleEvaluationMetric\n    reward::Float64\n\nAccumulates all rewards.\n\n\n\n"
 },
 
 {
@@ -805,7 +805,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Stopping Criteria",
     "title": "TabularReinforcementLearning.ConstantNumberEpisodes",
     "category": "Type",
-    "text": "mutable struct ConstantNumberEpisodes <: StoppingCriterion\n	N::Int64\n	counter::Int64\n\nStops learning when the agent has finished 'N' episodes.\n\n\n\n"
+    "text": "mutable struct ConstantNumberEpisodes <: StoppingCriterion\n    N::Int64\n    counter::Int64\n\nStops learning when the agent has finished 'N' episodes.\n\n\n\n"
 },
 
 {
@@ -813,7 +813,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Stopping Criteria",
     "title": "TabularReinforcementLearning.ConstantNumberEpisodes",
     "category": "Method",
-    "text": "	ConstantNumbeEpisodes(N) = ConstantNumberEpisodes(N, 0)\n\n\n\n"
+    "text": "    ConstantNumbeEpisodes(N) = ConstantNumberEpisodes(N, 0)\n\n\n\n"
 },
 
 {
@@ -821,7 +821,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Stopping Criteria",
     "title": "TabularReinforcementLearning.ConstantNumberSteps",
     "category": "Type",
-    "text": "mutable struct ConstantNumberSteps <: StoppingCriterion\n	T::Int64\n	counter::Int64\n\nStops learning when the agent has taken 'T' actions.\n\n\n\n"
+    "text": "mutable struct ConstantNumberSteps <: StoppingCriterion\n    T::Int64\n    counter::Int64\n\nStops learning when the agent has taken 'T' actions.\n\n\n\n"
 },
 
 {
@@ -853,7 +853,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Callbacks",
     "title": "TabularReinforcementLearning.ListofCallbacks",
     "category": "Type",
-    "text": "struct ListofCallbacks <: AbstractCallback \n	callbacks::Array{AbstractCallback, 1}\n\nLoops over all callbacks.\n\n\n\n"
+    "text": "struct ListofCallbacks <: AbstractCallback \n    callbacks::Array{AbstractCallback, 1}\n\nLoops over all callbacks.\n\n\n\n"
 },
 
 {
@@ -869,7 +869,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Callbacks",
     "title": "TabularReinforcementLearning.ReduceEpsilonPerEpisode",
     "category": "Type",
-    "text": "mutable struct ReduceEpsilonPerEpisode <: AbstractCallback\n	ϵ0::Float64\n	counter::Int64\n\nReduces ϵ of an EpsilonGreedyPolicy after each episode.\n\nIn episode n, ϵ = ϵ0/n\n\n\n\n"
+    "text": "mutable struct ReduceEpsilonPerEpisode <: AbstractCallback\n    ϵ0::Float64\n    counter::Int64\n\nReduces ϵ of an EpsilonGreedyPolicy after each episode.\n\nIn episode n, ϵ = ϵ0/n\n\n\n\n"
 },
 
 {
@@ -885,7 +885,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Callbacks",
     "title": "TabularReinforcementLearning.ReduceEpsilonPerT",
     "category": "Type",
-    "text": "mutable struct ReduceEpsilonPerT <: AbstractCallback\n	ϵ0::Float64\n	T::Int64\n	n::Int64\n	counter::Int64\n\nReduces ϵ of an EpsilonGreedyPolicy after every T steps.\n\nAfter n * T steps, ϵ = ϵ0/n\n\n\n\n"
+    "text": "mutable struct ReduceEpsilonPerT <: AbstractCallback\n    ϵ0::Float64\n    T::Int64\n    n::Int64\n    counter::Int64\n\nReduces ϵ of an EpsilonGreedyPolicy after every T steps.\n\nAfter n * T steps, ϵ = ϵ0/n\n\n\n\n"
 },
 
 {
@@ -925,7 +925,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "TabularReinforcementLearning.update!",
     "category": "Function",
-    "text": "update!(learner::TabularReinforcementLearning.AbstractReinforcementLearner, \n		r, s0, a0, s1, a1, iss0terminal)\n\nUpdate learner after observing state s0, performing action a0, receiving reward r, observing next state s1 and performing next action a1. The boolean iss0terminal is true if s0 is a terminal state.\n\nupdate!(learner::Union{NstepLearner, EpisodicLearner}, \n		baselearner::TabularReinforcementLearning.AbstractReinforcementLearner, \n		rewards, states, actions, isterminal)\n\nUpdate baselearner with arrays of maximally n+1 states, n+1 actions, n rewards, if learner is NstepLearner. If learner is EpisodicLearner the arrays grow until the end of an episode. The boolean isterminal is true if states[end-1] is a terminal state.\n\n\n\n"
+    "text": "update!(learner::TabularReinforcementLearning.AbstractReinforcementLearner, \n        r, s0, a0, s1, a1, iss0terminal)\n\nUpdate learner after observing state s0, performing action a0, receiving reward r, observing next state s1 and performing next action a1. The boolean iss0terminal is true if s0 is a terminal state.\n\nupdate!(learner::Union{NstepLearner, EpisodicLearner}, \n        baselearner::TabularReinforcementLearning.AbstractReinforcementLearner, \n        rewards, states, actions, isterminal)\n\nUpdate baselearner with arrays of maximally n+1 states, n+1 actions, n rewards, if learner is NstepLearner. If learner is EpisodicLearner the arrays grow until the end of an episode. The boolean isterminal is true if states[end-1] is a terminal state.\n\n\n\n"
 },
 
 {
@@ -933,7 +933,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "TabularReinforcementLearning.act",
     "category": "Method",
-    "text": "act(learner::TabularReinforcementLearning.AbstractReinforcementLearner,\n	policy::TabularReinforcementLearning.AbstractPolicy,\n	state)\n\nReturns an action for a learner, using policy in state.\n\n\n\n"
+    "text": "act(learner::TabularReinforcementLearning.AbstractReinforcementLearner,\n    policy::TabularReinforcementLearning.AbstractPolicy,\n    state)\n\nReturns an action for a learner, using policy in state.\n\n\n\n"
 },
 
 {
@@ -1021,7 +1021,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API",
     "title": "TabularReinforcementLearning.evaluate!",
     "category": "Function",
-    "text": "evaluate!(metric::TabularReinforcementLearning.AbstractEvaluationMetrics, \n		  reward, action, state, isterminal)\n\nUpdates the metric based on the experienced (reward, action, state) triplet and the boolean isterminal that is true if state is terminal.\n\n\n\n"
+    "text": "evaluate!(metric::TabularReinforcementLearning.AbstractEvaluationMetrics, \n          reward, action, state, isterminal)\n\nUpdates the metric based on the experienced (reward, action, state) triplet and the boolean isterminal that is true if state is terminal.\n\n\n\n"
 },
 
 {
