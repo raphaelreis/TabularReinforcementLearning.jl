@@ -42,7 +42,7 @@ function SmallBackups(; ns = 10, na = 4, γ = .9, initvalue = Inf64,
                  zeros(ns),
                  zeros(na, ns),
                  [Dict{Tuple{Int64, Int64}, Int64}() for _ in 1:ns],
-                 PriorityQueue(Int64[], Float64[], Base.Order.Reverse))
+                 PriorityQueue(Base.Order.Reverse, zip(Int64[], Float64[])))
 end
 
 function addtoqueue!(q, s, p)
