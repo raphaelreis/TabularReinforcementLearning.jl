@@ -4,10 +4,10 @@
         policy::AbstractPolicy
         callback::AbstractCallback
 """
-mutable struct Agent
-    learner::AbstractReinforcementLearner
-    policy::AbstractPolicy
-    callback::AbstractCallback
+struct Agent{TLearner, TPolicy, TCallback}
+    learner::TLearner
+    policy::TPolicy
+    callback::TCallback
 end
 export Agent
 """
@@ -42,11 +42,11 @@ end
         metric::AbstractEvaluationMetrics
         stoppingcriterion::StoppingCriterion
 """
-mutable struct RLSetup
+mutable struct RLSetup{TMetric, TStopping}
     agent::Agent
     environment
-    metric::AbstractEvaluationMetrics
-    stoppingcriterion::StoppingCriterion
+    metric::TMetric
+    stoppingcriterion::TStopping
 end
 export RLSetup
 

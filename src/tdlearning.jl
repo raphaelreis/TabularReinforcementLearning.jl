@@ -1,11 +1,11 @@
 for kind in (:QLearning, :Sarsa)
     @eval begin
-        mutable struct $kind <: AbstractTDLearner
+        mutable struct $kind{TTraces} <: AbstractTDLearner
             α::Float64
             γ::Float64
             unseenvalue::Float64
             params::Array{Float64, 2}
-            traces::AbstractTraces
+            traces::TTraces
         end; 
         export $kind
         function $kind(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
@@ -84,13 +84,13 @@ with next state ``s'``, probability ``\\pi(a', s')`` of choosing action ``a'`` i
 next state ``s'`` and ``e(a, s)`` is the eligibility trace (see [`NoTraces`](@ref), 
 [`ReplacingTraces`](@ref) and [`AccumulatingTraces`](@ref)).
 """
-mutable struct ExpectedSarsa <: AbstractTDLearner
+mutable struct ExpectedSarsa{TTraces,TPolicy} <: AbstractTDLearner
     α::Float64
     γ::Float64
     unseenvalue::Float64
     params::Array{Float64, 2}
-    traces::AbstractTraces
-    policy::AbstractPolicy
+    traces::TTraces
+    policy::TPolicy
 end
 export ExpectedSarsa
 """
