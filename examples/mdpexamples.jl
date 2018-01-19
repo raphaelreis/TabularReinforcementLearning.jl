@@ -44,7 +44,7 @@ end
 
 # Maze
 module Maze
-using TabularReinforcementLearning
+using TabularReinforcementLearning, StatsBase
 function getemptymaze(dimx, dimy)
     maze = ones(Int64, dimx, dimy)
     maze[1,:] .= maze[end,:] .= 0
@@ -111,25 +111,40 @@ function addrandomwall!(maze)
     return 1
 end
 
-function mazetomdp(maze)
+function mazetomdp(maze, ngoalstates = 1, stochastic = false)
     na = 4
     nzpos = find(maze)
     mapping = cumsum(maze[:])
     ns = length(nzpos)
     T = Array{SparseVector}(na, ns)
-    goals = rand(1:ns)
+    goals = sort(sample(1:ns, ngoalstates, replace = false))
     R = -ones(na, ns)
     R[:, goals] .= 0.
     isterminal = zeros(Int64, ns); isterminal[goals] = 1
-    isinitial = collect(1:ns); splice!(isinitial, goals)
+    isinitial = collect(1:ns); deleteat!(isinitial, goals)
     for s in 1:ns
         for (aind, a) in enumerate(([0, 1], [1, 0], [0, -1], [-1, 0]))
             pos = indto2d(maze, nzpos[s])
             nextpos = maze[(pos + a)...] == 0 ? pos : pos + a
-            nexts = mapping[posto1d(maze, nextpos)]
-            T[aind, s] = TabularReinforcementLearning.getprobvecdeterministic(ns,
+            if stochastic
+                positions = []
+                push!(positions, nextpos)
+                weights = [1.]
+                for dir in ([0, 1], [1, 0], [0, -1], [-1, 0])
+                    if maze[(nextpos + dir)...] != 0
+                        push!(positions, nextpos + dir)
+                        push!(weights, .2)
+                    end
+                end
+                states = map(p -> mapping[posto1d(maze, p)], positions)
+                weights /= sum(weights)
+                T[aind, s] = SparseVector(ns, states, weights)
+            else
+                nexts = mapping[posto1d(maze, nextpos)]
+                T[aind, s] = TabularReinforcementLearning.getprobvecdeterministic(ns,
                                                                        nexts,
                                                                        nexts)
+            end
         end
     end
     MDP(ns, na, rand(1:ns), T, R, isinitial, isterminal), goals, nzpos
@@ -152,14 +167,14 @@ end
     
 function getmazemdp(; nx = 40, ny = 40, returnall = false, 
                       nwalls = div(nx*ny, 10), 
-                      offset = 0.)
+                      offset = 0., stochastic = false, ngoals = 1)
     m = getemptymaze(nx, ny)
     [addrandomwall!(m) for _ in 1:nwalls]
     breaksomewalls(m)
-    mdp, goal, mapping = mazetomdp(m)
+    mdp, goals, mapping = mazetomdp(m, ngoals, stochastic)
     mdp.reward .+= offset
     if returnall
-        m, mdp, goal, mapping
+        m, mdp, goals, mapping
     else
         mdp
     end
@@ -189,6 +204,19 @@ function plotmazemdp(maze, goal, state, mapping;
                       labelleft="off", left="off")
     maze[mapping[goal]] = 1
     maze[mapping[state]] = 1
+end
+
+# using PlotlyJS
+function plotmazemdp(maze, goals, state, mapping)
+    m = deepcopy(maze)
+    m[mapping[goals]] = 3
+    m[mapping[state]] = 2
+    data = heatmap(z = m, colorscale = [[0, "gray"], [1/3, "white"], 
+                                        [2/3, "blue"], [1., "red"]], 
+                  showscale = false)
+    w, h = size(m)
+    layout = Layout(autosize = false, width = 800, height = 800 * h/w)
+    plot(data, layout)
 end
 
 # random MDPs
