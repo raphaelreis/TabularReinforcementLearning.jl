@@ -15,9 +15,9 @@ pgb() = Agent(PolicyGradientBackward(; α = 2e-7, biascorrector =
                                      params[1:3]...))
 pgac() = Agent(ActorCriticPolicyGradient(; α = 1e-1, αcritic = .1, nsteps = 1,
                                  params[1:3]...))
-results = @compare(200, getcliffwalkingmdp(), EvaluationPerEpisode(TotalReward()),
-                   ConstantNumberEpisodes(500), ql(), sarsa(), esarsa(),
-                   nstep(), pgac());
+results = compare(200, getcliffwalkingmdp(), EvaluationPerEpisode(TotalReward()),
+                   ConstantNumberEpisodes(500), ql, sarsa, esarsa,
+                   nstep, pgac);
 plotcomparison(results, smoothingwindow = 20, thin = .01,
                labels = Dict("NstepLearner_1" => "ActorCriticPolicyGradient",
                              "EpisodicLearner" => "EpisodicReinforce",
