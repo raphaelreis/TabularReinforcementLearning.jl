@@ -161,7 +161,7 @@ Records everything.
 struct RecordAll <: AbstractEvaluationMetrics
     r::Array{Float64, 1}
     a::Array{Int64, 1}
-    s::Array{Int64, 1}
+    s::Array{Any, 1}
     isterminal::Array{Bool, 1}
 end
 """
@@ -169,7 +169,7 @@ end
 
 Initializes with empty arrays.
 """
-RecordAll() = RecordAll(Float64[], Int64[], Int64[], Bool[])
+RecordAll() = RecordAll(Float64[], Int64[], [], Bool[])
 function evaluate!(p::RecordAll, r, a0, s0, isterminal)
     push!(p.r, r)
     push!(p.a, a0)

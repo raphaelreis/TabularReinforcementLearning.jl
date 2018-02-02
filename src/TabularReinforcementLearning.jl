@@ -18,6 +18,7 @@ include("montecarlo.jl")
 include("metrics.jl")
 include("stoppingcriterion.jl")
 include("callbacks.jl")
+include("preprocessor.jl")
 include("learn.jl")
 include("comparisontools.jl")
     

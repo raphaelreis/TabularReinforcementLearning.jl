@@ -63,20 +63,39 @@ end
 
 function increasetrace!(traces::NoTraces, state, action, isterminal)
 end
-function increasetrace!(traces::ReplacingTraces, state, action, isterminal)
+function increasetrace!(traces::ReplacingTraces, state::Int64, action, isterminal)
     if isterminal
         traces.trace[:, state] = 1.
     else
         traces.trace[action, state] = 1.
     end
 end
-function increasetrace!(traces::AccumulatingTraces, state, action, isterminal)
+function increasetrace!(traces::ReplacingTraces, state, action, isterminal)
+    if isterminal
+        for a in 1:size(traces.trace, 1)
+            traces.trace[a, :] .= state
+        end
+    else
+        traces.trace[action, :] .= state
+    end
+end
+function increasetrace!(traces::AccumulatingTraces, state::Int64, action, isterminal)
     if isterminal
         traces.trace[:, state] += 1.
     else
         traces.trace[action, state] += 1.
     end
 end
+function increasetrace!(traces::AccumulatingTraces, state, action, isterminal)
+    if isterminal
+        for a in 1:size(traces.trace, 1)
+            traces.trace[a, :] .+= state
+        end
+    else
+        traces.trace[action, :] .+= state
+    end
+end
+
 
 function discounttraces!(traces)
     BLAS.scale!(traces.γλ, traces.trace)
