@@ -115,22 +115,16 @@ learn!(learner, policy, callback, preprocessor, env, metric, stop) =
 """
 function run!(learner, policy, callback, preprocessor,
               env, metric, stop, withlearning = false)
-    s0, iss0terminal = getstate(env)
-    s0p = preprocess(preprocessor, s0)
-    a0 = act(learner, policy, s0p)
+    s0, r0, iss0terminal = preprocess(preprocessor, getstate(env)...)
+    a0 = act(learner, policy, s0)
     while true
-        s1, r, iss1terminal = interact!(a0, env)
-        if iss1terminal 
-            s1 = reset!(env) 
-            r = 0
-        end
-        s1p = preprocess(preprocessor, s1)
-        a1 = act(learner, policy, s1p)
-        if withlearning; update!(learner, r, s0p, a0, s1p, a1, iss0terminal); end
-        evaluate!(metric, r, a0, s0p, iss0terminal)
-        callback!(callback, learner, policy, r, a0, s0p, iss0terminal)
-        if isbreak!(stop, r, a0, s0p, iss0terminal); break; end
-        s0p = deepcopy(s1p)
+        s1, r, iss1terminal = preprocess(preprocessor, interact!(a0, env))
+        a1 = act(learner, policy, s1)
+        if withlearning; update!(learner, r, s0, a0, s1, a1, iss0terminal); end
+        evaluate!(metric, r, a0, s0, iss0terminal)
+        callback!(callback, learner, policy, r, a0, s0, iss0terminal)
+        if isbreak!(stop, r, a0, s0, iss0terminal); break; end
+        s0 = deepcopy(s1)
         a0 = a1
         iss0terminal = iss1terminal
     end
@@ -140,25 +134,20 @@ export run!, learn!
 # TODO: make nstep nicer.
 # also: above the order is update!, evaluate!, callback!, isbreak!
 #       here it is evaluate!, callback!, isbreak!, update!
-function step!(learner, policy, callback, env,
+function step!(learner, policy, callback, preprocessor, env,
                rewards, states, actions, iss0terminal, 
                nsteps, metric, stop)
     s0p = states[end]
     iss1terminal = iss0terminal
     for i in 1:nsteps
-        s1, r, iss1terminal = interact!(actions[end], env)
-        if iss1terminal 
-            s1 = reset!(env)
-            r = 0
-        end
-        s1p = preprocess(preprocessor, s1)
-        a1 = act(learner, policy, s1p)
+        s1, r, iss1terminal = preprocess(preprocessor, interact!(actions[end], env))
+        a1 = act(learner, policy, s1)
         push!(actions, a1)
         push!(rewards, r)
-        push!(states, s1p)
-        evaluate!(metric, r, actions[end-1], s0p, iss0terminal)
-        callback!(callback, learner, policy, r, actions[end-1], s0p, iss0terminal)
-        if isbreak!(stop, r, actions[end-1], s0p, iss0terminal)
+        push!(states, s1)
+        evaluate!(metric, r, actions[end-1], s0, iss0terminal)
+        callback!(callback, learner, policy, r, actions[end-1], s0, iss0terminal)
+        if isbreak!(stop, r, actions[end-1], s0, iss0terminal)
             if iss0terminal
                 return 4
             else
@@ -167,21 +156,20 @@ function step!(learner, policy, callback, env,
         end
         if iss0terminal; return 3; end
         iss0terminal = iss1terminal
-        s0p = deepcopy(s1)
+        s0 = deepcopy(s1)
     end
     return iss1terminal
 end
-function run!(learner::AbstractMultistepLearner, policy, callback,
+function run!(learner::AbstractMultistepLearner, policy, callback, preprocessor,
                 env, metric, stop, withlearning = false)
-    s0, ret = getstate(env)
-    s0p = preprocess(preprocessor, s0)
-    a0 = act(learner.learner, policy, s0p)
+    s0, r0, ret = preprocess(preprocessor, getstate(env)...)
+    a0 = act(learner.learner, policy, s0)
     actions = Int64[a0]
     rewards = Float64[]
-    states = Int64[s0p]
+    states = Int64[s0]
     while true
         if ret < 2 || length(actions) == 1
-            ret = step!(learner.learner, policy, callback, env,
+            ret = step!(learner.learner, policy, callback, preprocessor, env,
                         rewards, states, actions, ret == 1, 
                         1, metric, stop)
         end
