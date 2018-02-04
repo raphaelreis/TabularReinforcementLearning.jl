@@ -1,6 +1,9 @@
 struct NoPreprocessor end
 export NoPreprocessor
 preprocess(::NoPreprocessor, s) = s
+preprocess(::NoPreprocessor, s, done) = (s, 0, done)
+preprocess(p, s, done) = preprocess(p, (s, 0, done))
+preprocess(p, srd) = preprocess(p, srd[1], srd[2], srd[3])
 
 struct Box{T}
     low::Array{T, 1}
@@ -15,7 +18,7 @@ function StateAggregator(lb, ub, nbins, ndims)
     StateAggregator(Box(lb * ones(ndims), ub * ones(ndims)), 
                     nbins * ones(ndims))
 end
-function preprocess(p::StateAggregator, s)
+function preprocess(p::StateAggregator, s, r, done)
     sp = zeros(sum(p.nbins))
     offset = 0
     for i in 1:length(s)
@@ -25,5 +28,5 @@ function preprocess(p::StateAggregator, s)
         sp[index + offset] = 1.
         offset += p.nbins[i]
     end
-    sp
+    sp, r, done
 end
