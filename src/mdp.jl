@@ -176,7 +176,7 @@ Transition to a new state given `action`. Returns the new state.
 """
 function run!(mdp::MDP, action::Int64)
     if mdp.isterminal[mdp.state] == 1
-        mdp.state = rand(mdp.initialstates)
+        reset!(mdp)
     else
         mdp.state = sample(mdp.trans_probs[action, mdp.state])
     end
