@@ -133,7 +133,7 @@ function mazetomdp(maze, ngoalstates = 1, stochastic = false)
                 for dir in ([0, 1], [1, 0], [0, -1], [-1, 0])
                     if maze[(nextpos + dir)...] != 0
                         push!(positions, nextpos + dir)
-                        push!(weights, .2)
+                        push!(weights, .05)
                     end
                 end
                 states = map(p -> mapping[posto1d(maze, p)], positions)
