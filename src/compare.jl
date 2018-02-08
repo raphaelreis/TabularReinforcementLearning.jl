@@ -6,7 +6,7 @@ function makeuniquenames(agents)
     ids = String[]
     counts = Int64[]
     for (i, agent) in enumerate(agents)
-        id = split(string(typeof(agent().learner)), ".")[end]
+        id = split(split(string(typeof(agent().learner)), "{")[1], ".")[end]
         seenindex = find(x -> x == id, seen)
         if length(seenindex) > 0
             counts[seenindex[1]] += 1
