@@ -31,11 +31,12 @@ Replaces `policy` with SoftmaxPolicy1 for baselearner of type
 AbstractPolicyGradient.
 """
 function Agent(learner::AbstractMultistepLearner; 
-               policy = EpsilonGreedyPolicy(.1), callback = NoCallback())
+               policy = EpsilonGreedyPolicy(.1), callback = NoCallback(),
+               preprocessor = NoPreprocessor())
     if typeof(learner.learner) <: AbstractPolicyGradient
-        Agent(learner, SoftmaxPolicy1(), callback)
+        Agent(learner, SoftmaxPolicy1(), callback, preprocessor)
     else
-        Agent(learner, policy, callback)
+        Agent(learner, policy, callback, preprocessor)
     end
 end
 """
@@ -137,7 +138,7 @@ export run!, learn!
 function step!(learner, policy, callback, preprocessor, env,
                rewards, states, actions, iss0terminal, 
                nsteps, metric, stop)
-    s0p = states[end]
+    s0 = states[end]
     iss1terminal = iss0terminal
     for i in 1:nsteps
         s1, r, iss1terminal = preprocess(preprocessor, interact!(actions[end], env))
