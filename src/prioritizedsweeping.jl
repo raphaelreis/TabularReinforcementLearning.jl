@@ -5,8 +5,8 @@
         minpriority::Float64
         counter::Int64
         Q::Array{Float64, 2}
-        Qprev::Array{Float64, 2}
         V::Array{Float64, 1}
+        U::Array{Float64, 1}
         Nsa::Array{Int64, 2}
         Ns1a0s0::Array{Dict{Tuple{Int64, Int64}, Int64}, 1}
         queue::PriorityQueue
@@ -22,8 +22,8 @@ mutable struct SmallBackups <: AbstractReinforcementLearner
     minpriority::Float64
     counter::Int64
     Q::Array{Float64, 2}
-    Qprev::Array{Float64, 2}
     V::Array{Float64, 1}
+    U::Array{Float64, 1}
     Nsa::Array{Int64, 2}
     Ns1a0s0::Array{Dict{Tuple{Int64, Int64}, Int64}, 1}
     queue::PriorityQueue
@@ -39,8 +39,8 @@ function SmallBackups(; ns = 10, na = 4, γ = .9, initvalue = Inf64,
                         maxcount = 3, minpriority = 1e-8, M = 1)
     SmallBackups(γ, maxcount, minpriority, 0,
                  zeros(na, ns) .+ initvalue, 
-                 zeros(na, ns) .+ initvalue,
-                 zeros(ns),
+                 zeros(ns) .+ (initvalue == Inf64 ? 0. : initvalue),
+                 zeros(ns) .+ (initvalue == Inf64 ? 0. : initvalue),
                  zeros(na, ns),
                  [Dict{Tuple{Int64, Int64}, Int64}() for _ in 1:ns],
                  PriorityQueue(Base.Order.Reverse, zip(Int64[], Float64[])),
@@ -59,17 +59,14 @@ function processqueue!(learner)
     while length(learner.queue) > 0 && learner.counter < learner.maxcount
         learner.counter += 1
         s1 = dequeue!(learner.queue)
-        tmp = learner.V[s1]
-        for b in 1:size(learner.Q, 1)
-            learner.Qprev[b, s1] = learner.Q[b, s1]
-        end
-        learner.V[s1] = maximumbelowInf(learner.Q[:, s1])
-        ΔV = learner.V[s1] - tmp
+        ΔV = learner.V[s1] - learner.U[s1]
+        learner.U[s1] = learner.V[s1]
         if length(learner.Ns1a0s0[s1]) > 0
             for ((a0, s0), n) in learner.Ns1a0s0[s1]
                 if learner.Nsa[a0, s0] >= learner.M
                     learner.Q[a0, s0] += learner.γ * ΔV * n/learner.Nsa[a0, s0]
-                    p = abs(learner.Q[a0, s0] - learner.Qprev[a0, s0])
+                    learner.V[s0] = maximumbelowInf(learner.Q[:, s0])
+                    p = abs(learner.V[s0] - learner.U[s0])
                     if p > learner.minpriority; addtoqueue!(learner.queue, s0, p); end
                 end
             end
@@ -83,7 +80,7 @@ function update!(learner::SmallBackups, r, s0, a0, s1, a1, iss0terminal)
     if iss0terminal
         learner.Nsa[1, s0] += 1
         if learner.Q[1, s0] == Inf64; learner.Q[:, s0] .= 0; end
-        if learner.Nsa[a0, s0] >= learner.M
+        if learner.Nsa[1, s0] >= learner.M
             learner.Q[:, s0] .= (learner.Q[1, s0] * (learner.Nsa[1, s0] - 1) + r) / 
                                 learner.Nsa[1, s0]
         end
@@ -95,13 +92,14 @@ function update!(learner::SmallBackups, r, s0, a0, s1, a1, iss0terminal)
             learner.Ns1a0s0[s1][(a0, s0)] = 1
         end
         if learner.Q[a0, s0] == Inf64; learner.Q[a0, s0] = 0.; end
-        nextv = learner.γ * learner.V[s1]
+        nextv = learner.γ * learner.U[s1]
         if learner.Nsa[a0, s0] >= learner.M
             learner.Q[a0, s0] = (learner.Q[a0, s0] * (learner.Nsa[a0, s0] - 1) + 
                                 r + nextv) / learner.Nsa[a0, s0]
         end
     end
-    p = abs(learner.Q[a0, s0] - learner.Qprev[a0, s0])
+    learner.V[s0] = maximumbelowInf(learner.Q[:, s0])
+    p = abs(learner.V[s0] - learner.U[s0])
     if p > learner.minpriority; addtoqueue!(learner.queue, s0, p); end
     processqueue!(learner)
 end
