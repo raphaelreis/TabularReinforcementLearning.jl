@@ -111,7 +111,8 @@ function addrandomwall!(maze)
     return 1
 end
 
-function mazetomdp(maze, ngoalstates = 1, stochastic = false)
+function mazetomdp(maze, ngoalstates = 1, stochastic = false,
+                   neighbourstateweight = .05)
     na = 4
     nzpos = find(maze)
     mapping = cumsum(maze[:])
@@ -133,7 +134,7 @@ function mazetomdp(maze, ngoalstates = 1, stochastic = false)
                 for dir in ([0, 1], [1, 0], [0, -1], [-1, 0])
                     if maze[(nextpos + dir)...] != 0
                         push!(positions, nextpos + dir)
-                        push!(weights, .05)
+                        push!(weights, neighbourstateweight)
                     end
                 end
                 states = map(p -> mapping[posto1d(maze, p)], positions)
@@ -167,11 +168,12 @@ end
     
 function getmazemdp(; nx = 40, ny = 40, returnall = false, 
                       nwalls = div(nx*ny, 10), 
-                      offset = 0., stochastic = false, ngoals = 1)
+                      offset = 0., stochastic = false, ngoals = 1,
+                      neighbourstateweight = .05)
     m = getemptymaze(nx, ny)
     [addrandomwall!(m) for _ in 1:nwalls]
     breaksomewalls(m)
-    mdp, goals, mapping = mazetomdp(m, ngoals, stochastic)
+    mdp, goals, mapping = mazetomdp(m, ngoals, stochastic, neighbourstateweight)
     mdp.reward .+= offset
     if returnall
         m, mdp, goals, mapping
@@ -215,9 +217,16 @@ function plotmazemdp(maze, goals, state, mapping)
                                         [2/3, "blue"], [1., "red"]], 
                   showscale = false)
     w, h = size(m)
-    layout = Layout(autosize = false, width = 800, height = 800 * h/w)
+    layout = Layout(autosize = false, width = 600, height = 600 * h/w)
     plot(data, layout)
 end
+function updatemazeplot(p, state, mapping)
+    oldstate = findfirst(x -> x == 2, p.plot.data[1][:z])
+    p.plot.data[1][:z][oldstate] = 1
+    p.plot.data[1][:z][mapping[state]] = 2
+    p
+end
+
 
 # random MDPs
 function getdetmdp(; ns = 10^4, na = 10)
