@@ -28,18 +28,19 @@ function compare(N, env, metric, stopcrit, agents...; verbose = false)
                         value = valuetype[], seed = UInt64[])
     for t in 1:N
         seed = rand(1:typemax(UInt64)-1) 
+        if typeof(env) <: Function
+            environment = env()
+        else
+            environment = env
+            reset!(environment)
+        end
         for i in 1:L
             if verbose
                 print("round $t: $(learnerids[i]) with seed $seed ")
             end
             srand(seed)
             reset!(metric)
-            if typeof(env) <: Function
-                environment = env()
-            else
-                environment = env
-                reset!(environment)
-            end
+            reset!(environment)
             if verbose; print("started ... "); end
             learn!(agents[i](), environment, metric, stopcrit)
             if verbose; println("finished"); end
