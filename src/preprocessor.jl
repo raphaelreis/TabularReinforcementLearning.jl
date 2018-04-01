@@ -25,6 +25,7 @@ function preprocess(p::StateAggregator, s, r, done)
         index = round(Int64, (s[i] - p.box.low[i])/
                              (p.box.high[i] - p.box.low[i]) * 
                              (p.nbins[i] - 1)) + 1
+        index = max(min(index, p.nbins[i]), 1)
         sp[index + offset] = 1.
         offset += p.nbins[i]
     end
