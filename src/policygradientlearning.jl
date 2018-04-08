@@ -16,12 +16,13 @@ where ``r_{eff} =  r`` for [`NoBiasCorrector`](@ref), ``r_{eff} =  r - rmean``
 for [`RewardLowpassFilterBiasCorrector`](@ref) and e[a, s] is the eligibility
 trace.
 """ 
-mutable struct PolicyGradientBackward <: AbstractPolicyGradient
+mutable struct PolicyGradientBackward{Tbuff} <: AbstractPolicyGradient
+    @common_learner_fields
     α::Float64
-    γ::Float64
     params::Array{Float64, 2}
     traces::AccumulatingTraces
     biascorrector::AbstractBiasCorrector
+    initvalue::Float64
 end
 export PolicyGradientBackward
 """
@@ -31,11 +32,14 @@ export PolicyGradientBackward
 """
 function PolicyGradientBackward(; ns = 10, na = 4, α = .1, γ = .9, 
                                   tracekind = AccumulatingTraces,
-                                  initvalue = Inf64,
+                                  discretestates = false,
+                                  initvalue = discretestates ? Inf64 : 0., 
+                                  statetype = discretestates ? Int64 : Array{Float64, 1},
+                                  buffer = Buffer(statetype = statetype),
                                   biascorrector = NoBiasCorrector())
-        PolicyGradientBackward(α, γ, zeros(na, ns) + initvalue,
+        PolicyGradientBackward(γ, buffer, α, zeros(na, ns) + initvalue,
                                tracekind(ns, na, 1., γ),
-                               biascorrector)
+                               biascorrector, Float64(initvalue))
 end
 
 """
@@ -45,79 +49,73 @@ end
         params::Array{Float64, 2}
         biascorrector::AbstractBiasCorrector
 """
-mutable struct PolicyGradientForward <: AbstractPolicyGradient
+mutable struct PolicyGradientForward{Tbuff} <: AbstractPolicyGradient
+    @common_learner_fields
     α::Float64
-    γ::Float64
     params::Array{Float64, 2}
     biascorrector::AbstractBiasCorrector
+    initvalue::Float64
 end
 export PolicyGradientForward
 function PolicyGradientForward(; ns = 10, na = 4, α = .1, γ = .9,
-                                 initvalue = Inf64,
-                                 biascorrector = NoBiasCorrector())
-    PolicyGradientForward(α, γ, zeros(na, ns) + initvalue, biascorrector)
+                         discretestates = false,
+                         initvalue = discretestates ? Inf64 : 0., 
+                         statetype = discretestates ? Int64 : Array{Float64, 1},
+                         buffertype = Buffer,
+                         buffer = buffertype(statetype = statetype),
+                         biascorrector = NoBiasCorrector())
+    PolicyGradientForward(Float64(γ), buffer, Float64(α), zeros(na, ns) + initvalue, 
+                          biascorrector, Float64(initvalue))
 end
 """
     EpisodicReinforce(; kwargs...) = EpisodicLearner(PolicyGradientForward(; kwargs...))
 """
 EpisodicReinforce(; kwargs...) =
-    EpisodicLearner(PolicyGradientForward(; kwargs...))
+    PolicyGradientForward(; buffertype = EpisodeBuffer, kwargs...)
 export EpisodicReinforce
 """
     ActorCriticPolicyGradient(; nsteps = 1, γ = .9, ns = 10, na = 4, 
                                 α = .1, αcritic = .1, initvalue = Inf64)
 """
-ActorCriticPolicyGradient(; nsteps = 1, γ = .9, ns = 10, na = 4, 
-                            α = .1, αcritic = .1, initvalue = Inf64) =
-    NstepLearner(nsteps, 
-                 PolicyGradientForward(; biascorrector = Critic(ns = ns, 
-                                                                α = αcritic),
-                                              ns = ns, na = na, γ = γ, 
-                                              α = α, initvalue = initvalue))
+ActorCriticPolicyGradient(; nsteps = 1, γ = .9, ns = 10,
+                            αcritic = .1, kargs...) =
+        PolicyGradientForward(; biascorrector = Critic(γ = γ, ns = ns, α = αcritic),
+                        ns = ns, γ = γ, 
+                        buffertype = (;x...) -> Buffer(; capacity = nsteps + 1, x...),
+                        kargs...)
 export ActorCriticPolicyGradient
 
-function update!(learner, r, s, a)
-    δ = correct(learner.biascorrector, r, s)
-    updatetraceandparams!(learner.traces, learner.params, learner.α * δ)
-    if learner.params[a, s] == Inf64
-        learner.params[a, s] = learner.α * δ * learner.traces.trace[a, s] /
-                                    learner.traces.γλ 
-                                    # because updatetraceandparams updates 
-    end
-end
+
+# bias correctors
 
 """
     struct NoBiasCorrector <: AbstractBiasCorrector
 """
 struct NoBiasCorrector <: AbstractBiasCorrector end
 export NoBiasCorrector
-correct(::NoBiasCorrector, r, s, G = r) = G
+correct(::NoBiasCorrector, buffer, t = 1, G = buffer.rewards[t]) = G
 
 """
     mutable struct RewardLowpassFilterBiasCorrector <: AbstractBiasCorrector
-    γ::Float64
+    λ::Float64
     rmean::Float64
 
-Filters the reward with factor γ and uses effective reward (r - rmean) to update
+Filters the reward with factor λ and uses effective reward (r - rmean) to update
 the parameters.
 """
 mutable struct RewardLowpassFilterBiasCorrector <: AbstractBiasCorrector
-    γ::Float64
+    λ::Float64
     rmean::Float64
 end
 export RewardLowpassFilterBiasCorrector
-RewardLowpassFilterBiasCorrector(γ) = RewardLowpassFilterBiasCorrector(γ, 0.)
-function correct(corrector::RewardLowpassFilterBiasCorrector, r, s, G = r)
-    corrector.rmean *= corrector.γ
-    corrector.rmean += (1 - corrector.γ) * r
+RewardLowpassFilterBiasCorrector(λ) = RewardLowpassFilterBiasCorrector(λ, 0.)
+function correct(corrector::RewardLowpassFilterBiasCorrector, buffer, 
+                 t = 1, G = buffer.rewards[t])
+    corrector.rmean *= corrector.λ
+    corrector.rmean += (1 - corrector.λ) * buffer.rewards[t]
     G - corrector.rmean
 end
 
-function update!(learner::PolicyGradientBackward, r, s, a, nexts, nexta, isterminal)
-    gradlogpolicy!(getactionprobabilities(learner, s), s, a, learner.traces.trace)
-    update!(learner, r, s, a)
-    if isterminal; resettraces!(learner.traces); end
-end
 
 """
     mutable struct Critic <: AbstractBiasCorrector
@@ -126,32 +124,76 @@ end
 """
 mutable struct Critic <: AbstractBiasCorrector
     α::Float64
+    γ::Float64
     V::Array{Float64, 1}
 end
 export Critic
 """
-    Critic(; α = .1, ns = 10, initvalue = 0.)
+    Critic(; γ = .9, α = .1, ns = 10, initvalue = 0.)
 """
-Critic(; α = .1, ns = 10, initvalue = 0.) = Critic(α, zeros(ns) + initvalue)
-function correct(corrector::Critic, r, s, G = r)
-    δ = G - corrector.V[s]
-    corrector.V[s] += corrector.α * δ
-    δ
-end
-function correct(corrector::Critic, rewards, γ, s, lasts, isterminal)
-    δ = getnsteptderror(rewards, γ, corrector.V[s], corrector.V[lasts], isterminal)
-    corrector.V[s] += corrector.α * δ
+Critic(; γ = .9, α = .1, ns = 10, initvalue = 0.) = Critic(α, γ, zeros(ns) + initvalue)
+function correct(corrector::Critic, buffer, t = 1, G = buffer.rewards[t])
+    s = buffer.states[t]
+    δ = tderror(buffer.rewards, buffer.done, corrector.γ,
+                getvalue(corrector.V, s), 
+                getvalue(corrector.V, buffer.states[end]))
+    if typeof(s) <: Int
+        corrector.V[s] += corrector.α * δ
+    else
+        corrector.V .+= corrector.α * δ * s
+    end
     δ
 end
 
-function update!(::EpisodicLearner, learner, rewards, states, actions, isterminal)
-    if isterminal
+
+# update helper 
+
+getactionprobabilities(learner::AbstractPolicyGradient, s) =
+    getactionprobabilities(SoftmaxPolicy1(), getvalue(learner.params, s))
+
+function gradlogpolicy!(probs, state::Int, action, output, factor = 1.)
+    na, ns = size(output)
+    output[action, state] += factor
+    BLAS.axpy!(-factor, probs, 1:na, output, (state - 1) * na + 1 : state * na)
+end
+
+function gradlogpolicy!(probs, state::Vector, action, output, factor = 1.)
+    na, ns = size(output)
+    output[action, :] += factor * state
+    BLAS.ger!(-factor, probs, state, output)
+end
+
+function update!(learner, r, s, a)
+    δ = correct(learner.biascorrector, learner.buffer)
+    updatetraceandparams!(learner.traces, learner.params, learner.α * δ)
+    if learner.initvalue == Inf && learner.params[a, s] == Inf
+        learner.params[a, s] = learner.α * δ * learner.traces.trace[a, s] /
+                                    learner.traces.γλ 
+                                    # because updatetraceandparams updates 
+    end
+end
+
+# update
+
+function update!(learner::PolicyGradientBackward)
+    s = learner.buffer.states[1]; a = learner.buffer.actions[1];
+    gradlogpolicy!(getactionprobabilities(learner, s), s, a, learner.traces.trace)
+    update!(learner, learner.buffer.rewards[1], s, a)
+    if learner.buffer.done[1]; resettraces!(learner.traces); end
+end
+
+
+function update!(learner::PolicyGradientForward{<:EpisodeBuffer})
+    if learner.buffer.done[end]
+        rewards = learner.buffer.rewards
+        states = learner.buffer.states
+        actions = learner.buffer.actions
         G = rewards[end]
         gammaeff = learner.γ^length(rewards)
         tmp = deepcopy(learner.params)
         for t in length(rewards)-1:-1:1
             G = learner.γ * G + rewards[t]
-            δ = correct(learner.biascorrector, rewards[t], states[t], G)
+            δ = correct(learner.biascorrector, learner.buffer, t, G)
             gammaeff *= 1/learner.γ
             probs = getactionprobabilities(learner, states[t])
             gradlogpolicy!(probs, states[t], actions[t], tmp,
@@ -159,7 +201,7 @@ function update!(::EpisodicLearner, learner, rewards, states, actions, istermina
         end
         copy!(learner.params, tmp)
     else
-        if learner.params[actions[end], states[end]] == Inf64
+        if learner.initvalue == Inf && learner.params[actions[end], states[end]] == Inf
             learner.params[actions[end], states[end]] = 0.
         end
     end
@@ -168,22 +210,17 @@ end
 # Note: Actor-Critic (episodic) on p 344 of Sutton & Barto 2017 draft optimizes
 # for V[s1] and therefore discounts all other values (see I in algo). I don't do
 # this here.
-function update!(::NstepLearner, learner, rewards, states, actions, isterminal)
-    δ = correct(learner.biascorrector, rewards, learner.γ, states[1], states[end],
-                isterminal)
-    if learner.params[actions[end], states[end]] == Inf64
+function update!(learner::PolicyGradientForward{<:Buffer})
+    !isfull(learner.buffer) && return
+    rewards = learner.buffer.rewards
+    states = learner.buffer.states
+    actions = learner.buffer.actions
+    δ = correct(learner.biascorrector, learner.buffer)
+    if learner.initvalue == Inf && learner.params[actions[end], states[end]] == Inf
         learner.params[actions[end], states[end]] = 0.
     end
     gradlogpolicy!(getactionprobabilities(learner, states[1]),
                    states[1], actions[1], learner.params, learner.α * δ)
 end
 
-getactionprobabilities(learner::AbstractPolicyGradient, state) =
-    getactionprobabilities(SoftmaxPolicy1(), learner.params[:, state])
 
-function gradlogpolicy!(probs, state, action, output, factor = 1.)
-    output[action, state] += factor
-    na, ns = size(output)
-    BLAS.axpy!(-factor, probs, 1:na,
-               output, (state - 1) * na + 1 : state * na)
-end

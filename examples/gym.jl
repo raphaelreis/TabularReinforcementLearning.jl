@@ -59,12 +59,30 @@ gym.envs[:registry][:all]()
 # CartPole example
 
 env = GymEnv("CartPole-v0")
+env2 = CartPole()
+env2.state[:] = getstate(env)[1]
+reset = false
+for i in 1:309
+    a = 5 * rand() - 2.5
+    a = rand(1:2)
+    s, r, d = interact!(a, env)
+    s2, r2, d2 = interact!(a, env2)
+    if reset
+        env2.state[:] = getstate(env)[1]
+        reset = false
+    end
+    reset = d && d2
+    println("$i: $(s≈s2), $r, $r2, $d $d2")
+end
+
+env = env2
 agent = Agent(Sarsa(na = 2, ns = 160, initvalue = 0, α = .01), 
               preprocessor = StateAggregator(env.observation_space, 
                                              40 * ones(4)))
 metric = EvaluationPerEpisode(TotalReward())
 x = RLSetup(agent, env, metric, ConstantNumberEpisodes(10^4))
 @time learn!(x)
+
 using PlotlyJS
 plot(metric.values)
 

@@ -16,8 +16,8 @@ See [Harm Van Seijen, Rich Sutton ; Proceedings of the 30th International Confer
 `maxcount` defines the maximal number of backups per action, `minpriority` is
 the smallest priority still added to the queue.
 """
-mutable struct SmallBackups <: AbstractReinforcementLearner
-    γ::Float64
+mutable struct SmallBackups{Tbuff} <: AbstractReinforcementLearner
+    @common_learner_fields
     maxcount::UInt64
     minpriority::Float64
     counter::Int64
@@ -37,11 +37,11 @@ SmallBackups(; ns = 10, na = 4, γ = .9, initvalue = Inf64, maxcount = 3,
 """
 function SmallBackups(; ns = 10, na = 4, γ = .9, initvalue = Inf64,
                         maxcount = 3, minpriority = 1e-8, M = 1)
-    SmallBackups(γ, maxcount, minpriority, 0,
+    SmallBackups(γ, Buffer(), UInt64(maxcount), minpriority, 0,
                  zeros(na, ns) .+ initvalue, 
                  zeros(ns) .+ (initvalue == Inf64 ? 0. : initvalue),
                  zeros(ns) .+ (initvalue == Inf64 ? 0. : initvalue),
-                 zeros(na, ns),
+                 zeros(Int64, na, ns),
                  [Dict{Tuple{Int64, Int64}, Int64}() for _ in 1:ns],
                  PriorityQueue(Base.Order.Reverse, zip(Int64[], Float64[])),
                  M)
@@ -76,13 +76,18 @@ function processqueue!(learner)
 end
 
 
-function update!(learner::SmallBackups, r, s0, a0, s1, a1, iss0terminal)
-    if iss0terminal
-        learner.Nsa[1, s0] += 1
-        if learner.Q[1, s0] == Inf64; learner.Q[:, s0] .= 0; end
-        if learner.Nsa[1, s0] >= learner.M
-            learner.Q[:, s0] .= (learner.Q[1, s0] * (learner.Nsa[1, s0] - 1) + r) / 
-                                learner.Nsa[1, s0]
+function update!(learner::SmallBackups)
+    a0 = learner.buffer.actions[1]
+    a1 = learner.buffer.actions[2]
+    s0 = learner.buffer.states[1]
+    s1 = learner.buffer.states[2]
+    r = learner.buffer.rewards[1]
+    if learner.buffer.done[1]
+        learner.Nsa[a0, s0] += 1
+        if learner.Q[a0, s0] == Inf; learner.Q[a0, s0] = 0; end
+        if learner.Nsa[a0, s0] >= learner.M
+            learner.Q[a0, s0] = (learner.Q[a0, s0] * (learner.Nsa[a0, s0] - 1) + r) / 
+                               learner.Nsa[a0, s0]
         end
     else
         learner.Nsa[a0, s0] += 1

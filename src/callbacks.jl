@@ -3,7 +3,7 @@
 """
 struct NoCallback <: AbstractCallback end
 export NoCallback
-callback!(::NoCallback, learner, policy, r, a, s, isterminal) = Void
+callback!(::NoCallback, learner, policy) = Void
 
 """
     struct ListofCallbacks <: AbstractCallback 
@@ -15,9 +15,9 @@ struct ListofCallbacks <: AbstractCallback
     callbacks::Array{AbstractCallback, 1}
 end
 export ListofCallbacks
-function callback!(c::ListofCallbacks, learner, policy, r, a, s, isterminal)
+function callback!(c::ListofCallbacks, learner, policy)
     for callback in c.callbacks
-        callback!(callback, learner, policy, r, a, s, isterminal)
+        callback!(callback, learner, policy)
     end
 end
 
@@ -41,8 +41,8 @@ Initialize callback.
 """
 ReduceEpsilonPerEpisode() = ReduceEpsilonPerEpisode(0., 1)
 function callback!(c::ReduceEpsilonPerEpisode, learner, 
-                   policy::AbstractEpsilonGreedyPolicy, r, a, s, isterminal)
-    if isterminal
+                   policy::AbstractEpsilonGreedyPolicy)
+    if learner.buffer.done[end]
         if c.counter == 1
             c.ϵ0 = policy.ϵ
         end
@@ -76,7 +76,7 @@ Initialize callback.
 """
 ReduceEpsilonPerT(T) = ReduceEpsilonPerT(0., T, 1, 1)
 function callback!(c::ReduceEpsilonPerT, learner, 
-                   policy::AbstractEpsilonGreedyPolicy, r, a, s, isterminal)
+                   policy::AbstractEpsilonGreedyPolicy)
     c.counter += 1
     if c.counter == c.T
         c.counter == 1

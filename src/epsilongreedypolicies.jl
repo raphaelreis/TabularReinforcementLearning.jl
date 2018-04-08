@@ -62,7 +62,7 @@ where never chosen before.
 """ PesimisticEpsilonGreedyPolicy
 
 
-function act(policy::AbstractEpsilonGreedyPolicy, values)
+function selectaction(policy::AbstractEpsilonGreedyPolicy, values)
     if rand() < policy.ϵ
         rand(1:length(values))
     else

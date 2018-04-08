@@ -1,231 +1,116 @@
-for kind in (:QLearning, :Sarsa)
-    @eval begin
-        mutable struct $kind{TTraces} <: AbstractTDLearner
-            α::Float64
-            γ::Float64
-            unseenvalue::Float64
-            params::Array{Float64, 2}
-            traces::TTraces
-        end; 
-        export $kind
-        function $kind(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
-                           tracekind = ReplacingTraces, initvalue = Inf64,
-                           unseenvalue = 0.)
-                $kind(α, γ, unseenvalue, zeros(na, ns) .+ initvalue,
-                      λ == 0. || tracekind == NoTraces ? NoTraces() : 
-                        tracekind(ns, na, λ, γ))
-          end
-      end
-end
-# TODO: how can one generate the doc nicer?
-@doc """
-    mutable struct QLearning <: AbstractTDLearner
-        α::Float64
-        γ::Float64
-        unseenvalue::Float64
-        params::Array{Float64, 2}
-        traces::AbstractTraces
-
-QLearner with learning rate `α`, discount factor `γ`, Q-values `params` and
-eligibility `traces`.
-
-The Q-values are updated "off-policy" according to
-``Q(a, s) ← α δ e(a, s)``
-where ``δ = r + γ \\max_{a'} Q(a', s') - Q(a, s)`` with next state ``s'`` and
-``e(a, s)`` is the eligibility trace (see [`NoTraces`](@ref), 
-[`ReplacingTraces`](@ref) and [`AccumulatingTraces`](@ref)).
-""" QLearning
-@doc """
-    QLearning(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
-                tracekind = ReplacingTraces, initvalue = Inf64, unseenvalue = 0.)
-
-See also  [Initial values, novel actions and unseen values](@ref initunseen).
-""" QLearning()
-@doc """
-    mutable struct Sarsa <: AbstractTDLearner
-        α::Float64
-        γ::Float64
-        unseenvalue::Float64
-        params::Array{Float64, 2}
-        traces::AbstractTraces
-
-Sarsa Learner with learning rate `α`, discount factor `γ`, Q-values `params` and
-eligibility `traces`.
-
-The Q-values are updated "on-policy" according to
-``Q(a, s) ← α δ e(a, s)``
-where ``δ = r + γ Q(a', s') - Q(a, s)`` with next state ``s'``, next action
-``a'`` and ``e(a, s)`` is the eligibility trace (see [`NoTraces`](@ref), 
-[`ReplacingTraces`](@ref) and [`AccumulatingTraces`](@ref)).
-""" Sarsa
-@doc """
-    Sarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
-            tracekind = ReplacingTraces, initvalue = Inf64, unseenvalue = 0.)
-
-See also  [Initial values, novel actions and unseen values](@ref initunseen).
-""" Sarsa()
-
-"""
-    mutable struct ExpectedSarsa <: AbstractTDLearner
-        α::Float64
-        γ::Float64
-        unseenvalue::Float64
-        params::Array{Float64, 2}
-        traces::AbstractTraces
-        policy::AbstractPolicy
-
-Expected Sarsa Learner with learning rate `α`, discount factor `γ`, 
-Q-values `params` and eligibility `traces`.
-
-The Q-values are updated according to
-``Q(a, s) ← α δ e(a, s)``
-where ``δ = r + γ \\sum_{a'} \\pi(a', s') Q(a', s') - Q(a, s)`` 
-with next state ``s'``, probability ``\\pi(a', s')`` of choosing action ``a'`` in
-next state ``s'`` and ``e(a, s)`` is the eligibility trace (see [`NoTraces`](@ref), 
-[`ReplacingTraces`](@ref) and [`AccumulatingTraces`](@ref)).
-"""
-mutable struct ExpectedSarsa{TTraces,TPolicy} <: AbstractTDLearner
+mutable struct TDLearner{T, Tbuff}
+    @common_learner_fields
     α::Float64
-    γ::Float64
     unseenvalue::Float64
     params::Array{Float64, 2}
-    traces::TTraces
-    policy::TPolicy
-end
-export ExpectedSarsa
-"""
-    ExpectedSarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
-                    tracekind = ReplacingTraces, initvalue = Inf64,
-                    unseenvalue = 0.,
-                    policy = VeryOptimisticEpsilonGreedyPolicy(.1))
-
-See also  [Initial values, novel actions and unseen values](@ref initunseen).
-"""
-function ExpectedSarsa(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
-                         tracekind = ReplacingTraces, initvalue = Inf64,
-                         unseenvalue = 0, 
-                         policy = VeryOptimisticEpsilonGreedyPolicy(.1))
-    ExpectedSarsa(α, γ, unseenvalue, zeros(na, ns) .+ initvalue,
-                      λ == 0. || tracekind == NoTraces ? NoTraces() : 
-                      tracekind(ns, na, λ, γ), policy)
+    traces::T
+    initvalue::Float64
+    endvaluepolicy
 end
 
+function TDLearner(; ns = 10, na = 4, α = .1, γ = .9, λ = .8, 
+                     nsteps = 1, 
+                     discretestates = false,
+                     initvalue = discretestates ? Inf64 : 0.,
+                     statetype = discretestates ? Int64 : Array{Float64, 1},
+                     buffer = nsteps == Inf ?
+                        EpisodeBuffer(statetype = statetype) :
+                        Buffer(capacity = nsteps + 1, statetype = statetype),
+                     tracekind = ReplacingTraces, 
+                     unseenvalue = initvalue == Inf64 ? 0. : initvalue, 
+                     endvaluepolicy = :Sarsa)
+    TDLearner(γ, buffer, Float64(α), Float64(unseenvalue), zeros(na, ns) .+ initvalue,
+               λ == 0. || tracekind == NoTraces ? NoTraces() : 
+               tracekind(ns, na, λ, γ), Float64(initvalue), endvaluepolicy)
+end
+Sarsa(; kargs...) = TDLearner(; kargs...)
+QLearning(; kargs...) = TDLearner(; endvaluepolicy = :QLearning, kargs...)
+ExpectedSarsa(; kargs...) = TDLearner(; endvaluepolicy = VeryOptimisticEpsilonGreedyPolicy(.1), kargs...)
+export Sarsa, QLearning, ExpectedSarsa
 
-function futurediscountedcheckinf(γ, value, learner)
-    if value == Inf64
-#       TODO: unseenvalue could be updated through a callback   
-        γ * learner.unseenvalue
+# td error
+
+@inline getvaluecheckinf(learner, a, s) = checkinf(learner, getvalue(learner.params, a, s))
+@inline checkinf(learner, value) = (value == Inf64 ? learner.unseenvalue : value)
+
+@inline function futurevalue(learner)
+    a = learner.buffer.actions[end]
+    s = learner.buffer.states[end]
+    if learner.endvaluepolicy == :QLearning
+        checkinf(learner, maximumbelowInf(getvalue(learner.params, s)))
+    elseif learner.endvaluepolicy == :Sarsa
+        getvaluecheckinf(learner, a, s)
     else
-        γ * value
+        actionprobabilites = getactionprobabilities(learner.endvaluepolicy,
+                                                    getvalue(learner.params, s))
+        m = 0.
+        for (a, w) in enumerate(actionprobabilites)
+            if w != 0.
+                m += w * getvaluecheckinf(learner, a, s)
+            end
+        end
+        m
     end
 end
 
-function futurediscountedvalue(learner::QLearning, γ, nextstate, nextaction)
-    futurediscountedcheckinf(γ, maximumbelowInf(getvalue(learner.params, nextstate)),
-                             learner)
-end
-function futurediscountedvalue(learner::Sarsa, γ, nextstate, nextaction)
-    futurediscountedcheckinf(γ, getvalue(learner.params, nextaction, nextstate), learner)
-end
-function futurediscountedvalue(learner::ExpectedSarsa, γ, nextstate, nextaction)
-    actionprobabilites = getactionprobabilities(learner.policy,
-                                                getvalue(learner.params, nextstate))
-    m = 0.
-    for (a, w) in enumerate(actionprobabilites)
-        if w != 0.
-            m += w * futurediscountedcheckinf(γ, getvalue(learner.params, a, nextstate),
-                                              learner)
-         end
-    end
-    m
-end
-
-function gettderror(learner, r, s, a, nexts, nexta, isterminal)
-    δ = r
-    if !isterminal
-        δ += futurediscountedvalue(learner, learner.γ, nexts, nexta)
-    end
-    if getvalue(learner.params, a, s) != Inf64
-        δ -= getvalue(learner.params, a, s)
-    end
-    δ
-end
-function getnsteptderror(rewards::Array{Float64, 1}, γ, value1, valueend, 
-                         isterminal)
+@inline function discountedrewards(rewards, done, γ)
     gammaeff = 1.
-    advantage = -value1
-    for r in rewards
-        advantage += gammaeff * r
+    discr = 0.
+    for (r, done) in zip(rewards, done)
+        discr += gammaeff * r
+        done && return [discr; 0.]
         gammaeff *= γ
     end
-    if !isterminal
-        advantage += gammaeff * valueend
-    end
-    advantage
+    [discr; gammaeff]
 end
-function getnsteptderror(learner, rewards, states, actions, isterminal)
-    getnsteptderror(rewards, 
-                    learner.γ, 
-                    (getvalue(learner.params, actions[1], states[1]) == Inf64 ?
-                     0 : getvalue(learner.params, actions[1], states[1])),
-                    futurediscountedvalue(learner, 1., states[end], actions[end]),
-                    isterminal)
+@inline function tderror(rewards, done, γ, startvalue, endvalue)
+    discr, gammaeff = discountedrewards(rewards, done, γ)
+    discr + gammaeff * endvalue - startvalue
 end
 
-function update!(::NstepLearner, learner::AbstractTDLearner, 
-                 rewards, states, actions, isterminal)
-#   if isterminal || length(rewards) == learner.nsteps
-        δ = getnsteptderror(learner, rewards, states, actions, isterminal)
-        updatetraceandparams!(learner.traces, learner, 
-                              states[1], actions[1], δ, 
-                              isterminal && length(states) == 2)
-#   end
-end
-function update!(learner::AbstractTDLearner, r, s, a, nexts, nexta, isterminal) 
-    δ = gettderror(learner, r, s, a, nexts, nexta, isterminal)
-    updatetraceandparams!(learner.traces, learner, s, a, δ, isterminal)
+function tderror(learner)
+    tderror(learner.buffer.rewards, learner.buffer.done, learner.γ,
+            getvaluecheckinf(learner, learner.buffer.actions[1], learner.buffer.states[1]),
+            futurevalue(learner))
 end
 
-export update!
+# update params
 
-function updateterminalstate!(learner, s, δ)
-    for a in 1:size(learner.params, 1)
-        updateparam!(learner, s, a, learner.α, δ)
-    end
-end
-function updateparam!(learner, s, a, α, Δ)
+@inline function updateparam!(learner, s, a, δ)
     if learner.params[a, s] == Inf64
-        learner.params[a, s] = Δ
+        learner.params[a, s] = learner.unseenvalue + δ
     else
-        learner.params[a, s] += α * Δ
+        learner.params[a, s] += learner.α * δ
     end
 end
-function updateparam!(learner, s::Array{Float64, 1}, a, α, Δ)
+@inline function updateparam!(learner, s::Vector, a, δ)
     na, ns = size(learner.params)
-    BLAS.axpy!(α * Δ, s, 1:ns, learner.params, a:na:na * (ns - 1) + a)
+    BLAS.axpy!(learner.α * δ, s, 1:ns, learner.params, a:na:na * (ns - 1) + a)
 end
 
-function updatetraceandparams!(trace::NoTraces, learner, s, a, δ, isterminal)
-    if isterminal
-        updateterminalstate!(learner, s, δ)
-    else
-        updateparam!(learner, s, a, learner.α, δ)
-    end
-end
-
-function updatetraceandparams!(trace, learner, state, action, δ, isterminal)
-    increasetrace!(learner.traces, state, action, isterminal)
+@inline updatetraceandparams!(learner::TDLearner{NoTraces, <:Any}, s, a, δ) =
+    updateparam!(learner, s, a, δ)
+@inline function updatetraceandparams!(learner, s, a, δ)
+    increasetrace!(learner.traces, s, a)
     updatetraceandparams!(learner.traces, learner.params, learner.α * δ)
-    if maximum(learner.params) == Inf64 # TODO: is this a hack?
-        if learner.params[action, state] == Inf64
-            learner.params[action, state] = δ
-        end
+    if learner.initvalue == Inf && learner.params[a, s] == Inf
+        learner.params[a, s] = learner.unseenvalue + δ
     end
-    if isterminal; resettraces!(learner.traces); end
+    if learner.buffer.done[1]; resettraces!(learner.traces); end
 end
 
+# update
+
+function update!(learner::TDLearner)
+    !isfull(learner.buffer) && return
+    updatetraceandparams!(learner, 
+                          learner.buffer.states[1], 
+                          learner.buffer.actions[1],
+                          tderror(learner))
+end
  
-function getvalues(learner::AbstractTDLearner)
+function getvalues(learner::TDLearner)
     [maximum(learner.params[:, i]) for i in 1:size(learner.params, 2)]
 end
 export getvalues
+

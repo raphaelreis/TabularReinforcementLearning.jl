@@ -13,7 +13,7 @@ end
     ConstantNumberSteps(T) = ConstantNumberSteps(T, 0)
 """
 ConstantNumberSteps(T) = ConstantNumberSteps(T, 0)
-function isbreak!(criterion::ConstantNumberSteps, r, a, s, isterminal)
+function isbreak!(criterion::ConstantNumberSteps, done, buffer)
     criterion.counter += 1
     if criterion.counter == criterion.T
         criterion.counter = 0
@@ -39,8 +39,8 @@ end
         ConstantNumbeEpisodes(N) = ConstantNumberEpisodes(N, 0)
 """
 ConstantNumberEpisodes(N) = ConstantNumberEpisodes(N, 0)
-function isbreak!(criterion::ConstantNumberEpisodes, r, a, s, isterminal)
-    if isterminal
+function isbreak!(criterion::ConstantNumberEpisodes, done, buffer)
+    if done
         criterion.counter += 1
         if criterion.counter == criterion.N
             criterion.counter = 0

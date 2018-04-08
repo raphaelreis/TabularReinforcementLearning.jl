@@ -1,26 +1,26 @@
 """
     struct MDPLearner
-        gamma::Float64
+        γ::Float64
         policy::Array{Int64, 1}
         values::Array{Float64, 1}
         mdp::MDP
 
-Used to solve `mdp` with discount factor `gamma`.
+Used to solve `mdp` with discount factor `γ`.
 """
-struct MDPLearner <: AbstractReinforcementLearner
-    gamma::Float64
+struct MDPLearner{Tbuff} <: AbstractReinforcementLearner
+    @common_learner_fields # the buffer is needed to use run! (this is a hack)
     policy::Array{Int64, 1}
     values::Array{Float64, 1}
     mdp::MDP
 end
 export MDPLearner
 
-function MDPLearner(mdp, gamma::Float64)
-    return MDPLearner(gamma, ones(mdp.ns), zeros(mdp.ns), mdp)
+function MDPLearner(mdp, γ::Float64)
+    return MDPLearner(γ, Buffer(), ones(Int64, mdp.ns), zeros(mdp.ns), mdp)
 end
 
-function MDPLearner(ns::Int64, na::Int64, gamma::Float64)
-    return MDPLearner(gamma, ones(ns), zeros(ns), 
+function MDPLearner(ns::Int64, na::Int64, γ::Float64)
+    return MDPLearner(γ, Buffer(), ones(Int64, ns), zeros(ns), 
                       MDP(ns, na; init="uniform"))
 end
 
@@ -37,7 +37,7 @@ end
 function argmaxvalue(mdplearner, state)
     amax = 0; vmax = -Inf64
     for a in 1:mdplearner.mdp.na
-        v = mdplearner.mdp.reward[a, state] + mdplearner.gamma *
+        v = mdplearner.mdp.reward[a, state] + mdplearner.γ *
                 dot(mdplearner.mdp.trans_probs[a, state], mdplearner.values)
         if vmax < v 
             vmax = v
@@ -64,7 +64,7 @@ end
 
 function get_values_given_policy!(mdplearner::MDPLearner)
     trans_probs, reward = geteffectivetandr(mdplearner)
-    mdplearner.values[:] = get_value(reward, trans_probs, mdplearner.gamma)
+    mdplearner.values[:] = get_value(reward, trans_probs, mdplearner.γ)
 end
 
 """
@@ -98,11 +98,11 @@ export value_iteration!
 # utilities
 
 function get_Q_values(mdplearner::MDPLearner)
-    [mdplearner.mdp.reward[action, state] + mdplearner.gamma * (transpose(mdplearner.values) * mdplearner.mdp.trans_probs[:, action, state])[1,1] for action = 1:mdplearner.mdp.na, state = 1:mdplearner.mdp.ns]
+    [mdplearner.mdp.reward[action, state] + mdplearner.γ * (transpose(mdplearner.values) * mdplearner.mdp.trans_probs[:, action, state])[1,1] for action = 1:mdplearner.mdp.na, state = 1:mdplearner.mdp.ns]
 end
 
-function get_value(reward, trans_probs, gamma)
-    return (sparse(eye(length(reward))) - gamma * transpose(trans_probs)) \ reward
+function get_value(reward, trans_probs, γ)
+    return (sparse(eye(length(reward))) - γ * transpose(trans_probs)) \ reward
 end
 
-update!(::MDPLearner, r, s0, a0, s1, a1, iss0terminal) = Void
+update!(::MDPLearner) = Void

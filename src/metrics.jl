@@ -15,7 +15,7 @@ end
 Initializes `counter` and `meanreward` to 0.
 """
 MeanReward() = MeanReward(0., 0)
-function evaluate!(p::MeanReward, r, a0, s0, isterminal)
+function evaluate!(p::MeanReward, r, done, buffer)
     p.counter += 1
     p.meanreward += 1/p.counter * (r - p.meanreward)
 end
@@ -41,7 +41,7 @@ end
 Initializes `reward` to 0.
 """
 TotalReward() = TotalReward(0.)
-function evaluate!(p::TotalReward, r, a0, s0, isterminal)
+function evaluate!(p::TotalReward, r, done, buffer)
     p.reward += r
 end
 function reset!(p::TotalReward)
@@ -65,7 +65,7 @@ end
 Initializes `counter` to 0.
 """
 TimeSteps() = TimeSteps(0)
-function evaluate!(p::TimeSteps, r, a0, s0, isterminal)
+function evaluate!(p::TimeSteps, r, done, buffer)
     p.counter += 1
 end
 function reset!(p::TimeSteps)
@@ -95,9 +95,9 @@ Other options are [`TimeSteps`](@ref) (to measure the lengths of episodes) or
 """
 EvaluationPerEpisode(metric = MeanReward()) = EvaluationPerEpisode(Float64[],
                                                                    metric)
-function evaluate!(p::EvaluationPerEpisode, r, a0, s0, isterminal)
-    evaluate!(p.metric, r, a0, s0, isterminal)
-    if isterminal
+function evaluate!(p::EvaluationPerEpisode, r, done, buffer)
+    evaluate!(p.metric, r, done, buffer)
+    if done
         push!(p.values, getvalue(p.metric))
         reset!(p.metric)
     end
@@ -132,8 +132,8 @@ Initializes with `T`, `counter` = 0, empty `values` array and simple `metric`
 """
 EvaluationPerT(T, metric = MeanReward()) = EvaluationPerT(T, 0, Float64[],
                                                           metric)
-function evaluate!(p::EvaluationPerT, r, a0, s0, isterminal)
-    evaluate!(p.metric, r, a0, s0, isterminal)
+function evaluate!(p::EvaluationPerT, r, done, buffer)
+    evaluate!(p.metric, r, done, buffer)
     p.counter += 1
     if p.counter == p.T
         push!(p.values, getvalue(p.metric))
@@ -154,7 +154,7 @@ export EvaluationPerT
         r::Array{Float64, 1}
         a::Array{Int64, 1}
         s::Array{Int64, 1}
-        isterminal::Array{Bool, 1}
+        done::Array{Bool, 1}
 
 Records everything.
 """
@@ -162,7 +162,7 @@ struct RecordAll <: AbstractEvaluationMetrics
     r::Array{Float64, 1}
     a::Array{Int64, 1}
     s::Array{Any, 1}
-    isterminal::Array{Bool, 1}
+    done::Array{Bool, 1}
 end
 """
     RecordAll()
@@ -170,14 +170,14 @@ end
 Initializes with empty arrays.
 """
 RecordAll() = RecordAll(Float64[], Int64[], [], Bool[])
-function evaluate!(p::RecordAll, r, a0, s0, isterminal)
+function evaluate!(p::RecordAll, r, done, buffer)
     push!(p.r, r)
-    push!(p.a, a0)
-    push!(p.s, s0)
-    push!(p.isterminal, isterminal)
+    push!(p.a, buffer.actions[1])
+    push!(p.s, buffer.states[1])
+    push!(p.done, done)
 end
 function reset!(p::RecordAll)
-    empty!(p.r); empty!(p.a); empty!(p.s); empty!(p.isterminal)
+    empty!(p.r); empty!(p.a); empty!(p.s); empty!(p.done)
 end
 getvalue(p::RecordAll) = deepcopy(p)
 export RecordAll
@@ -197,7 +197,7 @@ end
 Initializes with empty array.
 """
 AllRewards() = AllRewards(Float64[])
-function evaluate!(p::AllRewards, r, a0, s0, isterminal)
+function evaluate!(p::AllRewards, r, done, buffer)
     push!(p.rewards, r)
 end
 function reset!(p::AllRewards)

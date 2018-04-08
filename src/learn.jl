@@ -15,30 +15,15 @@ export Agent
 """
     Agent(learner; policy = EpsilonGreedyPolicy(.1),  callback = NoCallback())
 """
-Agent(learner; policy = EpsilonGreedyPolicy(.1), 
-      callback = NoCallback(), preprocessor = NoPreprocessor()) = 
+Agent(learner; policy = EpsilonGreedyPolicy(.1), callback = NoCallback(), 
+      preprocessor = NoPreprocessor()) = 
       Agent(learner, policy, callback, preprocessor)
 """
     Agent(learner::AbstractPolicyGradient; policy = SoftmaxPolicy1(), callback = NoCallback())
 """
-Agent(learner::AbstractPolicyGradient;
-      policy = SoftmaxPolicy1(), preprocessor = NoPreprocessor(),
-      callback = NoCallback()) = Agent(learner, policy, callback, preprocessor)
-"""
-    Agent(learner::NstepLearner; policy = EpsilonGreedyPolicy(.1), callback = NoCallback())
-
-Replaces `policy` with SoftmaxPolicy1 for baselearner of type
-AbstractPolicyGradient.
-"""
-function Agent(learner::AbstractMultistepLearner; 
-               policy = EpsilonGreedyPolicy(.1), callback = NoCallback(),
-               preprocessor = NoPreprocessor())
-    if typeof(learner.learner) <: AbstractPolicyGradient
-        Agent(learner, SoftmaxPolicy1(), callback, preprocessor)
-    else
-        Agent(learner, policy, callback, preprocessor)
-    end
-end
+Agent(learner::Union{AbstractPolicyGradient, A2C}; policy = SoftmaxPolicy1(), 
+      preprocessor = NoPreprocessor(), callback = NoCallback()) = 
+    Agent(learner, policy, callback, preprocessor)
 """
     mutable struct RLSetup
         agent::Agent
@@ -54,23 +39,26 @@ mutable struct RLSetup{TMetric, TStopping}
 end
 export RLSetup
 
-getvalue(params, state::Int64) = params[:, state]
-getvalue(params, action::Int64, state::Int64) = params[action, state]
-getvalue(params, state::Array{Float64, 1}) = params * state
-getvalue(params, action::Int64, state::Array{Float64, 1}) = dot(params[action, :], state)
+@inline getvalue(params, state::Int) = params[:, state]
+@inline getvalue(params::Vector, state::Int) = params[state]
+@inline getvalue(params, action::Int, state::Int) = params[action, state]
+@inline getvalue(params, state::Vector) = params * state
+@inline getvalue(params::Vector, state::Vector) = dot(params, state)
+@inline getvalue(params, action::Int, state::Vector) = dot(params[action, :], state)
 
-act(agent::Agent, state) = act(agent.learner, agent.policy, state) 
-function act(learner::Union{AbstractTDLearner, AbstractPolicyGradient}, 
-             policy::AbstractPolicy,
-             state)
-    act(policy, getvalue(learner.params, state))
+selectaction(agent::Agent, state) = selectaction(agent.learner, agent.policy, state) 
+@inline function selectaction(learner::Union{TDLearner, AbstractPolicyGradient}, 
+                              policy::AbstractPolicy,
+                              state)
+    selectaction(policy, getvalue(learner.params, state))
 end
-function act(learner::Union{SmallBackups, MonteCarlo}, 
-             policy::AbstractPolicy,
-             state)
-    act(policy, getvalue(learner.Q, state))
+@inline function selectaction(learner::Union{SmallBackups, MonteCarlo}, 
+                              policy::AbstractPolicy,
+                              state)
+    selectaction(policy, getvalue(learner.Q, state))
 end
-function act(learner::MDPLearner, policy::AbstractEpsilonGreedyPolicy, state)
+@inline function selectaction(learner::MDPLearner, 
+                              policy::AbstractEpsilonGreedyPolicy, state)
     if rand() < policy.ϵ
         rand(1:learner.mdp.na)
     else
@@ -82,115 +70,49 @@ end
     learn!(x::RLSetup)
 
 """
-learn!(x::RLSetup) = learn!(x.agent.learner, x.agent.policy, x.agent.callback,
-                            x.agent.preprocessor, x.environment, x.metric, 
-                            x.stoppingcriterion)
+learn!(x::RLSetup) = learn!(x.agent, x.environment, x.metric, x.stoppingcriterion)
 """
     run!(x::RLSetup)
 
 """
-run!(x::RLSetup) = learn!(x.agent.learner, x.agent.policy, x.agent.callback,
-                          x.agent.preprocessor, x.environment, x.metric, 
-                          x.stoppingcriterion)
+run!(x::RLSetup) = run!(x.agent, x.environment, x.metric, x.stoppingcriterion)
 
 """
     learn!(agent::Agent, environment, metric, stoppingcriterion)
 """
-learn!(agent::Agent, env, metric, stop) =
-        learn!(agent.learner, agent.policy, agent.callback, agent.preprocessor,
-               env, metric, stop)
+@inline learn!(agent::Agent, env, metric, stop) =
+        learn!(agent.learner, agent.policy,  
+               agent.callback, agent.preprocessor, env, metric, stop)
 """
     run!(agent::Agent, environment, metric, stoppingcriterion)
 """
-run!(agent::Agent, env, metric, stop) =
-        run!(agent.learner, agent.policy, agent.callback, agent.preprocessor,
-             env, metric, stop)
+@inline run!(agent::Agent, env, metric, stop) =
+        run!(agent.learner, agent.policy,              
+             agent.callback, agent.preprocessor, env, metric, stop)
 
 """
     learn!(learner, policy, callback, environment, metric, stoppingcriterion)
 """
-learn!(learner, policy, callback, preprocessor, env, metric, stop) = 
+@inline learn!(learner, policy, callback, preprocessor, env, metric, stop) = 
     run!(learner, policy, callback, preprocessor, env, metric, stop, true)
 """
     run!(learner, policy, callback, environment, metric, stoppingcriterion)
 """
-function run!(learner, policy, callback, preprocessor,
-              env, metric, stop, withlearning = false)
-    s0, r0, iss0terminal = preprocess(preprocessor, getstate(env)...)
-    a0 = act(learner, policy, s0)
+@inline function run!(learner, policy, callback, preprocessor,
+                      env, metric, stop, withlearning = false)
+    s = preprocessstate(preprocessor, getstate(env)[1])
+    a = selectaction(learner, policy, s)
+    pushstateaction!(learner.buffer, s, a)
     while true
-        s1, r, iss1terminal = preprocess(preprocessor, interact!(a0, env))
-        a1 = act(learner, policy, s1)
-        if withlearning; update!(learner, r, s0, a0, s1, a1, iss0terminal); end
-        evaluate!(metric, r, a0, s0, iss0terminal)
-        callback!(callback, learner, policy, r, a0, s0, iss0terminal)
-        if isbreak!(stop, r, a0, s0, iss0terminal); break; end
-        s0 = deepcopy(s1)
-        a0 = a1
-        iss0terminal = iss1terminal
+        s, r, done = preprocess(preprocessor, interact!(a, env)...)
+        pushreturn!(learner.buffer, r, done)
+        if done; s = preprocessstate(preprocessor, reset!(env)) end
+        a = selectaction(learner, policy, s)
+        pushstateaction!(learner.buffer, s, a)
+        if withlearning; update!(learner); end
+        evaluate!(metric, r, done, learner.buffer)
+        callback!(callback, learner, policy)
+        if isbreak!(stop, done, learner.buffer); break; end
     end
 end
 export run!, learn!
-
-# TODO: make nstep nicer.
-# also: above the order is update!, evaluate!, callback!, isbreak!
-#       here it is evaluate!, callback!, isbreak!, update!
-function step!(learner, policy, callback, preprocessor, env,
-               rewards, states, actions, iss0terminal, 
-               nsteps, metric, stop)
-    s0 = states[end]
-    iss1terminal = iss0terminal
-    for i in 1:nsteps
-        s1, r, iss1terminal = preprocess(preprocessor, interact!(actions[end], env))
-        a1 = act(learner, policy, s1)
-        push!(actions, a1)
-        push!(rewards, r)
-        push!(states, s1)
-        evaluate!(metric, r, actions[end-1], s0, iss0terminal)
-        callback!(callback, learner, policy, r, actions[end-1], s0, iss0terminal)
-        if isbreak!(stop, r, actions[end-1], s0, iss0terminal)
-            if iss0terminal
-                return 4
-            else
-                return 2
-            end
-        end
-        if iss0terminal; return 3; end
-        iss0terminal = iss1terminal
-        s0 = deepcopy(s1)
-    end
-    return iss1terminal
-end
-function run!(learner::AbstractMultistepLearner, policy, callback, preprocessor,
-                env, metric, stop, withlearning = false)
-    s0, r0, ret = preprocess(preprocessor, getstate(env)...)
-    a0 = act(learner.learner, policy, s0)
-    actions = Int64[a0]
-    rewards = Float64[]
-    states = Int64[s0]
-    while true
-        if ret < 2 || length(actions) == 1
-            ret = step!(learner.learner, policy, callback, preprocessor, env,
-                        rewards, states, actions, ret == 1, 
-                        1, metric, stop)
-        end
-        if withlearning
-            update!(learner, learner.learner, rewards, states, actions, ret > 2)
-        end
-        if typeof(learner) == NstepLearner && 
-             (length(rewards) == learner.nsteps || 
-                (ret > 1 && length(actions) > 1))
-            shift!(actions); shift!(states); shift!(rewards)
-        end
-        if typeof(learner) == EpisodicLearner && ret > 2
-            empty!(rewards)
-            deleteat!(states, 1:length(states) - 1) 
-            deleteat!(actions, 1:length(actions) - 1)
-        end
-        if (ret == 2 || ret == 4) && 
-            (length(actions) == 1 || typeof(learner) == EpisodicLearner)
-            break
-        end
-    end
-end
-

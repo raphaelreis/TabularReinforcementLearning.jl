@@ -1,47 +1,3 @@
-using TabularReinforcementLearning
-
-# Cliff walking (Sutton & Barto)
-function getcliffwalkingmdp(; offset = 0., 
-                              returnall = false, 
-                              goalreward = 0.,
-                              cliffreward = -100.,
-                              stepreward = -1.)
-    ns = 4*12; na = 4
-    mdp = MDP(ns, na, init = "deterministic")
-    mdp.isterminal[45] = 1
-    mdp.initialstates = [1]
-    mdp.state = 1
-    for s in 1:ns
-        for a in 1:na
-            mdp.reward[a, s] = stepreward
-            if a == 4 && s <= 4 || a == 1 && mod(s, na) == 0 ||
-                a == 2 && s > 44 || a == 3 && s == 1
-                mdp.trans_probs[a, s] = SparseVector(ns, [s], [1.]) 
-            elseif mod(s, na) == 1 && s != 1 && s != 45       
-                mdp.trans_probs[a, s] = SparseVector(ns, [1], [1.])
-                mdp.reward[a, s] = cliffreward
-            else
-                if a == 1
-                    mdp.trans_probs[a, s] = SparseVector(ns, [s+1], [1.])
-                elseif a == 2
-                    mdp.trans_probs[a, s] = SparseVector(ns, [s+4], [1.])
-                elseif a == 3
-                    mdp.trans_probs[a, s] = SparseVector(ns, [s-1], [1.])
-                else
-                    mdp.trans_probs[a, s] = SparseVector(ns, [s-4], [1.])
-                end
-            end
-        end
-    end
-    mdp.reward[:, 45] .= goalreward
-    mdp.reward .+= offset
-    if returnall
-        ones(4, 12), mdp, 45, collect(1:ns)
-    else
-        mdp
-    end
-end
-
 # Maze
 module Maze
 using TabularReinforcementLearning, StatsBase
@@ -111,8 +67,10 @@ function addrandomwall!(maze)
     return 1
 end
 
-function mazetomdp(maze, ngoalstates = 1, stochastic = false,
+function mazetomdp(maze, ngoalstates = 1, goalrewards = 0, stochastic = false,
                    neighbourstateweight = .05)
+    stochastic && goalrewards != 0 && 
+    error("Non-zero goalrewards are not implemented for stochastic mazes.")
     na = 4
     nzpos = find(maze)
     mapping = cumsum(maze[:])
@@ -120,7 +78,6 @@ function mazetomdp(maze, ngoalstates = 1, stochastic = false,
     T = Array{SparseVector}(na, ns)
     goals = sort(sample(1:ns, ngoalstates, replace = false))
     R = -ones(na, ns)
-    R[:, goals] .= 0.
     isterminal = zeros(Int64, ns); isterminal[goals] = 1
     isinitial = collect(1:ns); deleteat!(isinitial, goals)
     for s in 1:ns
@@ -145,6 +102,10 @@ function mazetomdp(maze, ngoalstates = 1, stochastic = false,
                 T[aind, s] = TabularReinforcementLearning.getprobvecdeterministic(ns,
                                                                        nexts,
                                                                        nexts)
+                if nexts in goals
+                    R[a, s] = goalrewards <: Number ? goalrewards : 
+                                goalrewards[findfirst(x -> x == nexts, goals)]
+                end
             end
         end
     end
@@ -166,14 +127,15 @@ function breaksomewalls(m; f = 1/50,
     end
 end
     
-function getmazemdp(; nx = 40, ny = 40, returnall = false, 
-                      nwalls = div(nx*ny, 10), 
-                      offset = 0., stochastic = false, ngoals = 1,
-                      neighbourstateweight = .05)
+function MazeMDP(; nx = 40, ny = 40, returnall = false, 
+                   nwalls = div(nx*ny, 10), 
+                   offset = 0., stochastic = false, ngoals = 1,
+                   neighbourstateweight = .05, goalrewards = 0)
     m = getemptymaze(nx, ny)
     [addrandomwall!(m) for _ in 1:nwalls]
     breaksomewalls(m)
-    mdp, goals, mapping = mazetomdp(m, ngoals, stochastic, neighbourstateweight)
+    mdp, goals, mapping = mazetomdp(m, ngoals, goalrewards,
+                                    stochastic, neighbourstateweight)
     mdp.reward .+= offset
     if returnall
         m, mdp, goals, mapping
@@ -181,7 +143,7 @@ function getmazemdp(; nx = 40, ny = 40, returnall = false,
         mdp
     end
 end
-export getmazemdp
+export MazeMDP
 end
 using Maze
 
@@ -208,6 +170,7 @@ function plotmazemdp(maze, goal, state, mapping;
     maze[mapping[state]] = 1
 end
 
+# this function requires
 # using PlotlyJS
 function plotmazemdp(maze, goals, state, mapping)
     m = deepcopy(maze)
@@ -227,36 +190,4 @@ function updatemazeplot(p, state, mapping)
     p
 end
 
-
-# random MDPs
-function getdetmdp(; ns = 10^4, na = 10)
-    mdp = MDP(ns, na, init = "deterministic")
-    mdp.reward = mdp.reward .* (mdp.reward .< -1.5)
-    mdp
-end
-function getdettreemdp(; na = 4, depth = 5)
-    mdp = treeMDP(na, depth, init = "deterministic")
-end
-function getdettreemdpwithinrew(; args...)
-    mdp = getdettreemdp(; args...)
-    nonterminals = find(1 - mdp.isterminal)
-    mdp.reward[:, nonterminals] = -rand(mdp.na, length(nonterminals))
-    mdp
-end
-function getstochtreemdp(; na = 4, depth = 4, bf = 2)
-    mdp = treeMDP(na, depth, init = "random", branchingfactor = bf)
-    mdp
-end
-getstochmdp(; na = 10, ns = 50) = MDP(ns, na)
-function getabsorbingdetmdp(;ns = 10^3, na = 10)
-    mdp = MDP(ns, na, init = "deterministic")
-    mdp.reward .= mdp.reward .* (mdp.reward .< -.5)
-    mdp.isinitial = 1:div(ns, 100)
-    mdp.state = rand(mdp.isinitial)
-    setterminalstates!(mdp, ns - div(ns, 100) + 1:ns)
-    for s in find(mdp.isterminal)
-        mdp.reward[:, s] .= 0.
-    end
-    mdp
-end
 

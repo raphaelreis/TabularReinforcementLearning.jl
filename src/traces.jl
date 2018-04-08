@@ -4,8 +4,7 @@
 No eligibility traces, i.e. ``e(a, s) = 1`` for current action ``a`` and state
 ``s`` and zero otherwise.
 """
-struct NoTraces <: AbstractTraces
-end
+struct NoTraces <: AbstractTraces end
 export NoTraces
 
 for kind in (:ReplacingTraces, :AccumulatingTraces)
@@ -56,64 +55,29 @@ pair and ``e(a, s) ←  γλ e(a, s)`` for all other pairs unless
     AccumulatingTraces(ns, na, λ::Float64, γ::Float64; minimaltracevalue = 1e-12)
 """ AccumulatingTraces()
 
-function updatetrace!(traces, state, action, isterminal)
-    discounttraces!(traces)
-    increasetrace!(traces, state, action, isterminal)
+function increasetrace!(traces::ReplacingTraces, state::Int, action)
+    traces.trace[action, state] = 1.
 end
-
-function increasetrace!(traces::NoTraces, state, action, isterminal)
+function increasetrace!(traces::ReplacingTraces, state::Vector, action)
+    traces.trace[action, :] .= state
 end
-function increasetrace!(traces::ReplacingTraces, state::Int64, action, isterminal)
-    if isterminal
-        traces.trace[:, state] = 1.
-    else
-        traces.trace[action, state] = 1.
-    end
+function increasetrace!(traces::AccumulatingTraces, state::Int, action)
+    traces.trace[action, state] += 1.
 end
-function increasetrace!(traces::ReplacingTraces, state, action, isterminal)
-    if isterminal
-        for a in 1:size(traces.trace, 1)
-            traces.trace[a, :] .= state
-        end
-    else
-        traces.trace[action, :] .= state
-    end
-end
-function increasetrace!(traces::AccumulatingTraces, state::Int64, action, isterminal)
-    if isterminal
-        traces.trace[:, state] += 1.
-    else
-        traces.trace[action, state] += 1.
-    end
-end
-function increasetrace!(traces::AccumulatingTraces, state, action, isterminal)
-    if isterminal
-        for a in 1:size(traces.trace, 1)
-            traces.trace[a, :] .+= state
-        end
-    else
-        traces.trace[action, :] .+= state
-    end
+function increasetrace!(traces::AccumulatingTraces, state::Vector, action)
+    traces.trace[action, :] .+= state
 end
 
 
-function discounttraces!(traces)
-    BLAS.scale!(traces.γλ, traces.trace)
-end
-
-function resettraces!(traces::NoTraces)
-end
-function resettraces!(traces::Union{ReplacingTraces, AccumulatingTraces})
-    BLAS.scale!(0., traces.trace)
-end
+discounttraces!(traces) = BLAS.scale!(traces.γλ, traces.trace)
+resettraces!(traces) = BLAS.scale!(0., traces.trace)
 
 function updatetraceandparams!(traces, params, factor)
-    for i in 1:length(traces.trace)
-        if traces.trace[i] > traces.minimaltracevalue
-            params[i] += factor * traces.trace[i]
-            traces.trace[i] *= traces.γλ
-        elseif traces.trace[i] > 0.
-            traces.trace[i] = 0.
-        end
-    end
+    BLAS.axpy!(factor, traces.trace, params)
+    discounttraces!(traces)
+end
+
+function updatetrace!(traces, state, action)
+    discounttraces!(traces)
+    increasetrace!(traces, state, action)
 end

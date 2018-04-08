@@ -26,7 +26,7 @@ function compare(N, env, metric, stopcrit, agents...; verbose = false)
     valuetype = typeof(getvalue(metric))
     results = DataFrame(learner = String[], 
                         value = valuetype[], seed = UInt64[])
-    for t in 1:N
+    for t in 1:N # TODO: @parallel
         seed = rand(1:typemax(UInt64)-1) 
         if typeof(env) <: Function
             environment = env()

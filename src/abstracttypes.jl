@@ -1,6 +1,6 @@
 # learner
 abstract type AbstractReinforcementLearner end
-abstract type AbstractTDLearner <: AbstractReinforcementLearner end
+abstract type AbstractTDLearner{T} <: AbstractReinforcementLearner end
 abstract type AbstractPolicyGradient <: AbstractReinforcementLearner end
 function update! end
 @doc """
@@ -27,20 +27,20 @@ export update!
 abstract type AbstractPolicy end
 abstract type AbstractEpsilonGreedyPolicy <: AbstractPolicy end
 abstract type AbstractSoftmaxPolicy <: AbstractPolicy end
-function act end
+function selectaction end
 @doc """
-    act(learner::TabularReinforcementLearning.AbstractReinforcementLearner,
+    selectaction(learner::TabularReinforcementLearning.AbstractReinforcementLearner,
         policy::TabularReinforcementLearning.AbstractPolicy,
         state)
 
 Returns an action for a `learner`, using `policy` in `state`.
-""" act(learner, policy, state)
+""" selectaction(learner, policy, state)
 @doc """
-    act(policy::TabularReinforcementLearning.AbstractPolicy, values)
+    selectaction(policy::TabularReinforcementLearning.AbstractPolicy, values)
 
 Returns an action given an array of `values` (one value for each possible action) 
 using `policy`.
-""" act(policy, values)
+""" selectaction(policy, values)
 function getactionprobabilities end
 @doc """
     getactionprobabilities(policy::TabularReinforcementLearning.AbstractPolicy, values)
@@ -48,7 +48,7 @@ function getactionprobabilities end
 Returns a array of action probabilities for a given array of `values` 
 (one value for each possible action) and `policy`.
 """ getactionprobabilities
-export act, getactionprobabilities
+export selectaction, getactionprobabilities
 
 # environment
 function interact! end

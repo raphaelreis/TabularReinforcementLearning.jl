@@ -97,34 +97,37 @@ If `init` is random, the `branchingfactor` determines how many possible states a
 na`.
 """
 function treeMDP(na, depth; 
-              init = "random", 
-              branchingfactor = 3)
-    isdet = init == "deterministic"
+                 init = "random", 
+                 branchingfactor = 3)
+    isdet = (init == "deterministic")
     if isdet
         branchingfactor = na
-        ns = na.^(0:depth)
+        ns = na.^(0:depth - 1)
     else
-        ns = branchingfactor.^(0:depth)
+        ns = branchingfactor.^(0:depth - 1)
     end
     cns = cumsum(ns)
     func = eval(parse("getprobvec" * init))
-    T = Array{SparseVector, 2}(na, cns[end-1])
-    for i in 1:depth
+    T = Array{SparseVector, 2}(na, cns[end])
+    for i in 1:depth - 1
         for s in 1:ns[i]
             for a in 1:na
                 lb = cns[i] + (s - 1) * branchingfactor + (a - 1) * isdet + 1
                 ub = isdet ? lb : lb + branchingfactor - 1
-                T[a, (i == 1 ? 0 : cns[i-1]) + s] = func(cns[end], lb, ub)
+                T[a, (i == 1 ? 0 : cns[i-1]) + s] = func(cns[end] + 1, lb, ub)
             end
         end
     end
-    r = zeros(na, cns[end])
-    isterminal = zeros(cns[end])
+    r = zeros(na, cns[end] + 1)
+    isterminal = [zeros(cns[end]); 1]
     for s in cns[end-1]+1:cns[end]
-        r[:, s] .= -rand()
-        isterminal[s] = 1
+        for a in 1:na
+            r[a, s] = -rand()
+            T[a, s] = getprobvecdeterministic(cns[end] + 1, cns[end] + 1,
+                                              cns[end] + 1)
+        end
     end
-    MDP(cns[end], na, 1, T, r, 1:1, isterminal)
+    MDP(cns[end] + 1, na, 1, T, r, 1:1, isterminal)
 end
 export treeMDP
 

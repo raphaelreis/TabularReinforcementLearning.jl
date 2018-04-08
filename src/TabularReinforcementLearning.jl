@@ -5,6 +5,7 @@ module TabularReinforcementLearning
 using DataStructures
 include("abstracttypes.jl")
 include("helper.jl")
+include("buffers.jl")
 include("traces.jl")
 include("epsilongreedypolicies.jl")
 include("softmaxpolicy.jl")
@@ -19,6 +20,7 @@ include("metrics.jl")
 include("stoppingcriterion.jl")
 include("callbacks.jl")
 include("preprocessor.jl")
+include("knet.jl")
 include("learn.jl")
 include("comparisontools.jl")
     

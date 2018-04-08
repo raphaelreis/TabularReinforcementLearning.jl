@@ -23,7 +23,7 @@ end
 SoftmaxPolicy(; β = 1.) = β == 1 ? SoftmaxPolicy1() : SoftmaxPolicy(β)
 export SoftmaxPolicy, SoftmaxPolicy1
 
-function act(policy::AbstractSoftmaxPolicy, values)
+function selectaction(policy::AbstractSoftmaxPolicy, values)
     if maximum(values) == Inf64
         rand(find(v -> v == Inf64, values))
     else
@@ -45,8 +45,8 @@ function getactionprobabilities(policy::AbstractSoftmaxPolicy, values)
     end
 end
 
-getexpvals(p::SoftmaxPolicy, values) = exp.(p.β .* (values - maximum(values)))
-getexpvals(::SoftmaxPolicy1, values) = exp.((values - maximum(values)))
+@inline getexpvals(p::SoftmaxPolicy, values) = exp.(p.β .* (values - maximum(values)))
+@inline getexpvals(::SoftmaxPolicy1, values) = exp.((values - maximum(values)))
 
 # Samples from Categorical(exp(input)/sum(exp(input)))
 actsoftmax(policy::SoftmaxPolicy, values) = actsoftmax(policy.β .* values)

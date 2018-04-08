@@ -1,10 +1,13 @@
 using TabularReinforcementLearning
 using Base.Test
 
-include("epsilongreedypolicies.jl")
-include("tdlearning.jl")
-include("traces.jl")
-include("learnmdp.jl")
+@testset "ϵ-greedy policies" begin include("epsilongreedypolicies.jl") end
+@testset "tdlearning" begin include("tdlearning.jl") end
+@testset "traces" begin include("traces.jl") end
+@testset "mdp solver" begin include("learnmdp.jl") end
+@testset "linear function approximation" begin include("linfuncapprox.jl") end
+@testset "preprocessor" begin include("preprocessors.jl") end
 # include("nsteptdlearning.jl")
-include("policygradient.jl")
-include("smallbackups.jl")
+# @testset "policy gradient" begin include("policygradient.jl") end
+@testset "monte carlo" begin include("montecarlo.jl") end
+@testset "small backups" begin include("smallbackups.jl") end
