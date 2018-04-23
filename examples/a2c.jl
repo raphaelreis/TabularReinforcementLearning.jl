@@ -1,6 +1,6 @@
 using TabularReinforcementLearning
-@everywhere include(joinpath("..", "environments", "classiccontrol", "cartpole.jl"))
-@everywhere include(joinpath("..", "environments", "classiccontrol", "mountaincar.jl"))
+@everywhere include(joinpath(Pkg.dir("TabularReinforcementLearning"), "environments", "classiccontrol", "cartpole.jl"))
+@everywhere include(joinpath(Pkg.dir("TabularReinforcementLearning"), "environments", "classiccontrol", "mountaincar.jl"))
 
 
 # used for testing
@@ -81,8 +81,8 @@ pgfplot(Plot(Coordinates(1:length(xeval.metric.values), xeval.metric.values)), "
 env = CartPole();
 using Flux
 learner = DQN(Chain(Dense(4, 24, relu), #Dense(24, 24, relu),
-                    Dense(24, 2)), statetype = Vector{Float64},
-              minibatchsize = 16);
+                    Dense(24, 2)),
+              minibatchsize = 16, doubledqn = true);
 # learner = DeepActorCritic(Chain(Dense(4, 24, relu), 
 #                                 Dense(24, 24, relu)),
 #                            nh = 24, na = 2, nsteps = 25, αcritic = 0.);

@@ -8,9 +8,11 @@ function Linear(in::Int, out::Int;
                 T = Float64, initW = (x...) -> zeros(T, x...))
     Linear(Flux.param(initW(out, in)))
 end
-
 (a::Linear)(x) = a.W * x
 Flux.treelike(Linear)
+
+struct Id end # used for testing
+(l::Id)(x) = x
 
 Base.show(io::IO, l::Linear) = print(io, "Linear( $(size(l.W, 2)), $(size(l.W, 1)))")
 

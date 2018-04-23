@@ -9,16 +9,17 @@ mutable struct DQN{Tnet,Tbuff,Topt}
     opt::Topt
     startlearningat::Int64
     minibatchsize::Int64
+    doubledqn::Bool
 end
 export DQN
 function DQN(net; replaysize = 10^4, γ = .99, updatetargetevery = 500,
-                  statetype = Array{Float32, 2}, nsteps = 1, 
+                  statetype = Array{Float64, 1}, nsteps = 1, 
                   startlearningat = 10^3, minibatchsize = 32,
-                  opt = Flux.ADAM, updateevery = 4)
+                  opt = Flux.ADAM, updateevery = 4, doubledqn = false)
     θ = Flux.params(net)
     DQN(γ, Buffer(; capacity = replaysize, statetype = statetype),
         Flux.mapleaves(Flux.Tracker.data, net), net, updatetargetevery, 0, nsteps, 
-        updateevery, opt(θ), startlearningat, minibatchsize)
+        updateevery, opt(θ), startlearningat, minibatchsize, doubledqn)
 end
 @inline function selectaction(learner::DQN, policy, state)
     selectaction(policy, learner.policynet(state).data)
@@ -37,14 +38,18 @@ function update!(learner::DQN)
     end
     b = learner.buffer
     indices = StatsBase.sample(1:length(b.rewards), learner.minibatchsize, replace = false)
-    q = selecta(learner.policynet(cat(max(2, length(size(b.states.buffer[1]))), 
-                                      b.states[indices]...)), b.actions[indices])
+    qa = learner.policynet(lastcat(b.states[indices]))
+    q = selecta(qa, b.actions[indices])
     rs = Float64[]
-    for i in indices
+    for (k, i) in enumerate(indices)
         r, γeff = discountedrewards(b.rewards[i:i + learner.nsteps - 1], 
                                     b.done[i:i + learner.nsteps - 1], learner.γ)
         if γeff > 0
-            r += learner.γ * maximum(learner.targetnet(b.states[i + 1]))
+            if learner.doubledqn
+                r += learner.γ * learner.targetnet(b.states[i + 1])[indmax(qa.data[:,k])]
+            else
+                r += learner.γ * maximum(learner.targetnet(b.states[i + 1]))
+            end
         end
         push!(rs, r)
     end

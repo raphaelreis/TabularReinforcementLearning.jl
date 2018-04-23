@@ -9,8 +9,7 @@ learner = DQN(Flux.Chain(Flux.Conv((8, 8), 4 => 32, relu, stride = (4, 4)),
                          Flux.Conv((3, 3), 64 => 64, relu),
                          x -> reshape(x, :, size(x, 4)),
                          Flux.Dense(3136, 512, relu), Linear(512, na)),
-              statetype = Array{Float64, 4}, updatetargetevery = 500,
-              replaysize = 10^6);
+              updatetargetevery = 500, replaysize = 10^6);
 x = RLSetup(Agent(learner, policy = RepeatActionPolicy(), preprocessor =
                   AtariPreprocessor()), 
             env,

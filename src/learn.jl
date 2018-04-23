@@ -31,18 +31,18 @@ Agent(learner::Union{AbstractPolicyGradient,DeepActorCritic}; policy = SoftmaxPo
         metric::AbstractEvaluationMetrics
         stoppingcriterion::StoppingCriterion
 """
-struct ParallelAgents{TLearner, TPolicy, TCallback, TPreprocessor} 
+struct AsyncParallelAgents{TLearner, TPolicy, TCallback, TPreprocessor} 
     learner::Array{TLearner, 1}
     policy::TPolicy
     callback::TCallback
     preprocessor::TPreprocessor
 end
-export ParallelAgents
-function ParallelAgents(learners::AbstractArray; policy = SoftmaxPolicy1(),
+export AsyncParallelAgents
+function AsyncParallelAgents(learners::AbstractArray; policy = SoftmaxPolicy1(),
                         preprocessor = NoPreprocessor(), callback = NoCallback())
-    ParallelAgents(learners, policy, callback, preprocessor)
+    AsyncParallelAgents(learners, policy, callback, preprocessor)
 end
-function ParallelAgents(learner, n; policy = SoftmaxPolicy1(),
+function AsyncParallelAgents(learner, n; policy = SoftmaxPolicy1(),
                         preprocessor = NoPreprocessor(), callback = NoCallback())
     learners = [deepcopy(learner) for _ in 1:n]
     w = params(learners[1])
@@ -52,16 +52,53 @@ function ParallelAgents(learner, n; policy = SoftmaxPolicy1(),
         w = SharedArray.(w)
     end
     for learner in learners; setparams!(learner, w); end # share parameters
-    ParallelAgents(learners, policy, callback, preprocessor)
+    AsyncParallelAgents(learners, policy, callback, preprocessor)
 end
 
-mutable struct RLSetup{TMetric, TStopping}
+function copyandreplace(obj, fieldname, newval)
+    fields = []
+    for field in typeof(obj).name.names
+        if field == fieldname
+            push!(fields, newval)
+        else
+            push!(fields, getfield(obj, field))
+        end
+    end
+    typeof(obj).name.wrapper(fields...)
+end
+mutable struct RLSetup{TM, TS}
     agent
     environment
-    metric::TMetric
-    stoppingcriterion::TStopping
+    metric::TM
+    stoppingcriterion::TS
 end
-export RLSetup
+export RLSetup    
+function RLSetup(agent, env, metric::TM, stop::TS) where {TM, TS} # most elegant way?
+    Tstate = typeof(preprocessstate(agent.preprocessor, getstate(env)[1]))
+    b = agent.learner.buffer
+    if Tstate != typeof(b).parameters[1]
+        info("Changing statetype from $(typeof(b).parameters[1]) to $Tstate.")
+        buffertype = typeof(b)
+        fields = []
+        for field in buffertype.name.names
+            if field == :states
+                if typeof(b.states) <: CircularBuffer
+                    push!(fields, CircularBuffer{Tstate}(b.states.capacity))
+                else
+                    push!(fields, Array{Tstate, 1})
+                end
+            else
+                push!(fields, getfield(b, field))
+            end
+        end
+        newbuffer = buffertype.name.wrapper(fields...)
+        agent = copyandreplace(agent, :learner, 
+                               copyandreplace(agent.learner, :buffer, 
+                                              newbuffer))
+    end
+    RLSetup{typeof(metric),typeof(stop)}(agent, env, metric, stop)
+end
+
 
 @inline getvalue(params, state::Int) = params[:, state]
 @inline getvalue(params::Vector, state::Int) = params[state]
@@ -154,4 +191,12 @@ end
              metric, stop, withlearning)
     end
 end
+@inline function run!(learner, policy, callback, preprocessor,
+                      envs::AbstractArray, metric, stop, withlearning = false)
+    for i in 1:length(envs)
+        run!(learner, policy, callback, preprocessor, envs[i], 
+             metric, stop, withlearning)
+    end
+end
+
 export run!, learn!
