@@ -44,11 +44,10 @@ function preprocessstate(p::StateAggregator, s)
         for i in 1:length(s)
             sp[indices[i] + 1 + p.offsets[i]] = 1.
         end
+        sp
     else
-        sp = zeros((*)(p.nbins...))
-        sp[dot(indices, p.offsets) + 1] = 1
+        dot(indices, p.offsets) + 1
     end
-    sp
 end
 
 struct RadialBasisFunctions

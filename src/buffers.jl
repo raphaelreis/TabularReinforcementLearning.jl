@@ -39,35 +39,23 @@ function pushreturn!(b::EpisodeBuffer, r, done)
     push!(b.done, done)
 end
 
-struct ReplayBuffer{Ts, Ta}
-    states::CircularBuffer{Ts}
+struct AdvantageBuffer{Tg, Ta}
+    pg::CircularBuffer{Tg}
     actions::CircularBuffer{Ta}
+    values::CircularBuffer{Float64}
     rewards::CircularBuffer{Float64}
     done::CircularBuffer{Bool}
-    rewardsums::CircularBuffer{Array{Float64, 1}}
-    nsteps::Int64
-    γ::Float64
 end
-export ReplayBuffer
-function ReplayBuffer(; statetype = Array{Float64, 1}, actiontype = Int64, 
-                        capacity = 10^4, nsteps = 1, γ = .9)
-    ReplayBuffer(CircularBuffer{statetype}(capacity),
-                 CircularBuffer{actiontype}(capacity),
-                 CircularBuffer{Float64}(capacity-1),
-                 CircularBuffer{Bool}(capacity-1),
-                 CircularBuffer{Array{Float64, 1}}(capacity-nsteps),
-                 nsteps, γ)
+export AdvantageBuffer
+function AdvantageBuffer(; gradienttype = Array{Any, 1}, actiontype = Int64, 
+                           nsteps = 1, capacity = nsteps + 1, γ = .9)
+    AdvantageBuffer(CircularBuffer{gradienttype}(capacity),
+                    CircularBuffer{actiontype}(capacity),
+                    CircularBuffer{Float64}(capacity),
+                    CircularBuffer{Float64}(capacity - 1),
+                    CircularBuffer{Bool}(capacity - 1))
 end
-function pushreturn!(b::ReplayBuffer, r, done)
-    push!(b.rewards, r)
-    push!(b.done, done)
-    if length(b.rewards) >= b.nsteps
-        push!(b.rewardsums, 
-              discountedrewards(b.rewards[end - b.nsteps + 1:end],
-                                b.done[end - b.nsteps + 1:end],
-                                b.γ))
-    end
-end
+pushstateaction!(b::AdvantageBuffer, s, a) = push!(b.actions, a)
 
 import DataStructures.isfull
-isfull(b::Union{Buffer, ReplayBuffer}) = isfull(b.states)
+isfull(b::Union{Buffer, AdvantageBuffer}) = isfull(b.rewards)

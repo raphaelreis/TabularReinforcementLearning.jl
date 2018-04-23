@@ -52,10 +52,12 @@ end
 mutable struct PolicyGradientForward{Tbuff} <: AbstractPolicyGradient
     @common_learner_fields
     α::Float64
-    params::Array{Float64, 2}
+    params
     biascorrector::AbstractBiasCorrector
     initvalue::Float64
 end
+params(p::PolicyGradientForward) = [p.params]
+setparams!(p::PolicyGradientForward, w) = p.params = w[1]
 export PolicyGradientForward
 function PolicyGradientForward(; ns = 10, na = 4, α = .1, γ = .9,
                          discretestates = false,

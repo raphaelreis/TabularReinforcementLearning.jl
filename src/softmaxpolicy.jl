@@ -51,7 +51,7 @@ end
 # Samples from Categorical(exp(input)/sum(exp(input)))
 actsoftmax(policy::SoftmaxPolicy, values) = actsoftmax(policy.β .* values)
 actsoftmax(::SoftmaxPolicy1, values) = actsoftmax(values)
-function actsoftmax(input::Array{Float64,1})
+function actsoftmax(input)
     unnormalized_probs = exp.(input)
     r = rand()*sum(unnormalized_probs)
     tmp = unnormalized_probs[1]

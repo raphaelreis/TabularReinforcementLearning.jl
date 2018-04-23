@@ -7,6 +7,7 @@ No eligibility traces, i.e. ``e(a, s) = 1`` for current action ``a`` and state
 struct NoTraces <: AbstractTraces end
 export NoTraces
 
+# TODO: use sparse matrices for speed.
 for kind in (:ReplacingTraces, :AccumulatingTraces)
     @eval (struct $kind <: AbstractTraces
                 λ::Float64
