@@ -18,11 +18,12 @@ function DQN(net; replaysize = 10^4, γ = .99, updatetargetevery = 500,
                   opt = Flux.ADAM, updateevery = 4, doubledqn = false)
     θ = Flux.params(net)
     DQN(γ, Buffer(; capacity = replaysize, statetype = statetype),
-        Flux.mapleaves(Flux.Tracker.data, net), net, updatetargetevery, 0, nsteps, 
+        Flux.mapleaves(Flux.Tracker.data, net) |> Flux.gpu, net |> Flux.gpu, 
+        updatetargetevery, 0, nsteps, 
         updateevery, opt(θ), startlearningat, minibatchsize, doubledqn)
 end
 @inline function selectaction(learner::DQN, policy, state)
-    selectaction(policy, learner.policynet(state).data)
+    selectaction(policy, learner.policynet(Flux.gpu(state)).data)
 end
 function selecta(q, a)
     na, t = size(q)
@@ -38,7 +39,8 @@ function update!(learner::DQN)
     end
     b = learner.buffer
     indices = StatsBase.sample(1:length(b.rewards), learner.minibatchsize, replace = false)
-    qa = learner.policynet(lastcat(b.states[indices]))
+    qa = learner.policynet(Flux.gpu(lastcat(b.states[indices])))
+    qat = learner.targetnet(Flux.gpu(lastcat(b.states[indices + 1])))
     q = selecta(qa, b.actions[indices])
     rs = Float64[]
     for (k, i) in enumerate(indices)
@@ -46,9 +48,9 @@ function update!(learner::DQN)
                                     b.done[i:i + learner.nsteps - 1], learner.γ)
         if γeff > 0
             if learner.doubledqn
-                r += learner.γ * learner.targetnet(b.states[i + 1])[indmax(qa.data[:,k])]
+                r += learner.γ * qat[indmax(qa.data[:,k]), k]
             else
-                r += learner.γ * maximum(learner.targetnet(b.states[i + 1]))
+                r += learner.γ * maximum(qat[:, k])
             end
         end
         push!(rs, r)
