@@ -20,8 +20,8 @@ function DQN(net; replaysize = 10^4, γ = .99, updatetargetevery = 500,
     θ = Flux.params(net)
     DQN(γ, Buffer(; capacity = replaysize, statetype = statetype),
         Flux.mapleaves(Flux.Tracker.data, deepcopy(net)) |> Flux.gpu, 
-        Flux.mapleaves(Flux.Tracker.data, net) |> Flux.gpu, 
         net |> Flux.gpu,
+        Flux.mapleaves(Flux.Tracker.data, net) |> Flux.gpu, 
         updatetargetevery, 0, nsteps, 
         updateevery, opt(θ), startlearningat, minibatchsize, doubledqn)
 end
