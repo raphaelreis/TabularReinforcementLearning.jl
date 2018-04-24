@@ -106,7 +106,7 @@ function callback!(c::LinearDecreaseEpsilon, learner, policy)
     c.t += 1
     if c.t == 1 policy.ϵ = c.initval end
     if c.t >= c.start && c.t < c.stop
-        policy.ϵ -= step
+        policy.ϵ -= c.step
     end
 end
 
