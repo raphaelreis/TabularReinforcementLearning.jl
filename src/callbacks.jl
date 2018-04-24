@@ -89,4 +89,25 @@ function callback!(c::ReduceEpsilonPerT, learner,
 end
 export ReduceEpsilonPerT
 
+mutable struct LinearDecreaseEpsilon <: AbstractCallback
+    start::Int64
+    stop::Int64
+    initval::Float64
+    finalval::Float64
+    t::Int64
+    step::Float64
+end
+export LinearDecreaseEpsilon
+function LinearDecreaseEpsilon(start, stop, initval, finalval)
+    step = (finalval - initval)/(stop - start)
+    LinearDecreaseEpsilon(start, stop, initval, finalval, 0, step)
+end
+function callback!(c::LinearDecreaseEpsilon, learner, policy)
+    c.t += 1
+    if c.t == 1 policy.ϵ = c.initval end
+    if c.t >= c.start && c.t < c.stop
+        policy.ϵ -= step
+    end
+end
+
 

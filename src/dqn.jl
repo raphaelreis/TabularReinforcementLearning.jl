@@ -1,6 +1,7 @@
 mutable struct DQN{Tnet,Tbuff,Topt}
     @common_learner_fields
     targetnet::Tnet
+    trainnet::Tnet
     policynet::Tnet
     updatetargetevery::Int64
     t::Int64
@@ -18,12 +19,14 @@ function DQN(net; replaysize = 10^4, γ = .99, updatetargetevery = 500,
                   opt = Flux.ADAM, updateevery = 4, doubledqn = false)
     θ = Flux.params(net)
     DQN(γ, Buffer(; capacity = replaysize, statetype = statetype),
-        Flux.mapleaves(Flux.Tracker.data, net) |> Flux.gpu, net |> Flux.gpu, 
+        Flux.mapleaves(Flux.Tracker.data, deepcopy(net)) |> Flux.gpu, 
+        Flux.mapleaves(Flux.Tracker.data, net) |> Flux.gpu, 
+        net |> Flux.gpu,
         updatetargetevery, 0, nsteps, 
         updateevery, opt(θ), startlearningat, minibatchsize, doubledqn)
 end
 @inline function selectaction(learner::DQN, policy, state)
-    selectaction(policy, learner.policynet(Flux.gpu(state)).data)
+    selectaction(policy, learner.policynet(Flux.gpu(state)))
 end
 function selecta(q, a)
     na, t = size(q)
@@ -35,11 +38,11 @@ function update!(learner::DQN)
     (learner.t <= learner.startlearningat || 
      learner.t % learner.updateevery != 0) && return
     if learner.t % learner.updatetargetevery == 0
-        Flux.loadparams!(learner.targetnet, Flux.params(learner.policynet)) # this is slow
+        Flux.loadparams!(learner.targetnet, Flux.params(learner.policynet))
     end
     b = learner.buffer
     indices = StatsBase.sample(1:length(b.rewards), learner.minibatchsize, replace = false)
-    qa = learner.policynet(Flux.gpu(lastcat(b.states[indices])))
+    qa = learner.trainnet(Flux.gpu(lastcat(b.states[indices])))
     qat = learner.targetnet(Flux.gpu(lastcat(b.states[indices + 1])))
     q = selecta(qa, b.actions[indices])
     rs = Float64[]

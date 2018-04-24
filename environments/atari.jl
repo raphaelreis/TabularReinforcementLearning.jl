@@ -1,22 +1,20 @@
 using ArcadeLearningEnvironment, Images
-import DataStructures:CircularBuffer
-import TabularReinforcementLearning.interact!,
-TabularReinforcementLearning.getstate,
-TabularReinforcementLearning.reset!,
-TabularReinforcementLearning.preprocessstate,
-TabularReinforcementLearning.selectaction
+import DataStructures: CircularBuffer
+import TabularReinforcementLearning
+const T = TabularReinforcementLearning
+import T.interact!, T.getstate, T.reset!, T.preprocessstate, T.selectaction,
+T.callback!
 
 struct AtariEnv
     ale::Ptr{Void}
     screen::Array{UInt8, 1}
 end
 function AtariEnv(name)
-    ale = ALE_new()
-    try
+    if isfile(name)
+        ale = ALE_new()
         loadROM(ale, name)
-    catch err
-        println(err)
-        error("ROM $name could not be loaded.")
+    else
+        error("ROM $name could not be found.")
     end
     screen = Array{UInt8}(210*160*3)
     AtariEnv(ale, screen)
@@ -59,9 +57,9 @@ mutable struct RepeatActionPolicy{T}
     a::Int64
     policy::T
 end # TODO: how to reset at end of episode?
-RepeatActionPolicy(; k = 4, a = 1, policy = SoftmaxPolicy1()) = 
+RepeatActionPolicy(; k = 4, a = 1, policy = EpsilonGreedyPolicy(1.)) = 
     RepeatActionPolicy(0, k, a, policy)
-function selectaction(learner::TabularReinforcementLearning.DQN, 
+function selectaction(learner::T.DQN, 
                       p::RepeatActionPolicy, state)
     p.i += 1
     if p.i == p.k
@@ -71,3 +69,4 @@ function selectaction(learner::TabularReinforcementLearning.DQN,
         p.a
     end
 end
+callback!(c::T.LinearDecreaseEpsilon, learner, p::RepeatActionPolicy) = callback!(c, learner, p.policy)
