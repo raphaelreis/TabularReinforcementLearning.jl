@@ -55,6 +55,6 @@ function update!(learner::DQN)
         end
         push!(rs, r)
     end
-    Flux.back!(Flux.mse(q, rs))
+    Flux.back!(Flux.mse(q, Flux.gpu(rs)))
     learner.opt()
 end
