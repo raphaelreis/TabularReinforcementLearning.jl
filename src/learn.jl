@@ -71,13 +71,24 @@ mutable struct RLSetup{TM, TS}
     environment
     metric::TM
     stoppingcriterion::TS
+    RLSetup{TM, TS}(a, e, m, s) where {TM, TS} = new(a, e, m, s)
 end
 export RLSetup    
 function RLSetup(agent, env, metric::TM, stop::TS) where {TM, TS} # most elegant way?
-    Tstate = typeof(preprocessstate(agent.preprocessor, getstate(env)[1]))
+    if typeof(agent.learner) <: DeepActorCritic
+        if agent.learner.nenvs > 1 && length(env) != agent.learner.nenvs
+            error("Learner expects $(agent.learner.nenvs) environments; $(length(env)) given.")
+        end
+    end
+    if typeof(env) <: AbstractArray
+        s = getstate(env[1])[1]
+    else
+        s = getstate(env)[1]
+    end
+    Tstate = typeof(preprocessstate(agent.preprocessor, s))
     b = agent.learner.buffer
     if Tstate != typeof(b).parameters[1]
-        info("Changing statetype from $(typeof(b).parameters[1]) to $Tstate.")
+        info("Detected type of state after preprocessing: $Tstate.")
         buffertype = typeof(b)
         fields = []
         for field in buffertype.name.names
