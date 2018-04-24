@@ -1,4 +1,5 @@
-using ArcadeLearningEnvironment, Images, DataStructures
+using ArcadeLearningEnvironment, Images
+import DataStructures:CircularBuffer
 import TabularReinforcementLearning.interact!,
 TabularReinforcementLearning.getstate,
 TabularReinforcementLearning.reset!,
