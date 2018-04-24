@@ -69,4 +69,5 @@ function selectaction(learner::T.DQN,
         p.a
     end
 end
-callback!(c::T.LinearDecreaseEpsilon, learner, p::RepeatActionPolicy) = callback!(c, learner, p.policy)
+callback!(c::T.LinearDecreaseEpsilon, learner, p::RepeatActionPolicy, args...) = 
+    callback!(c, learner, p.policy, args...)

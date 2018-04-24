@@ -191,7 +191,7 @@ end
         r, done = step!(learner, policy, env, preprocessor)
         if withlearning; update!(learner); end
         evaluate!(metric, r, done, learner.buffer)
-        callback!(callback, learner, policy)
+        callback!(callback, learner, policy, metric, stop)
         if isbreak!(stop, done, learner.buffer); break; end
     end
 end
