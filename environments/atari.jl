@@ -1,6 +1,7 @@
 using ArcadeLearningEnvironment, Images
 import DataStructures: CircularBuffer
 import TabularReinforcementLearning
+import Flux
 const T = TabularReinforcementLearning
 import T.interact!, T.getstate, T.reset!, T.preprocessstate, T.selectaction,
 T.callback!
@@ -30,25 +31,13 @@ function getstate(env::AtariEnv)
 end
 reset!(env::AtariEnv) = reset_game(env.ale)
 
-struct AtariPreprocessor
-    buffer::CircularBuffer{Array{Float64, 4}}
-end
-function AtariPreprocessor(; n = 4, statetype = Array{Float64, 4})
-    p = AtariPreprocessor(CircularBuffer{statetype}(n))
-    for i in 1:n
-        push!(p.buffer, zeros(84, 84, 1, 1))
-    end
-    p
-end
-function preprocessstate(p::AtariPreprocessor, s)
+struct AtariPreprocessor end
+function preprocessstate(::AtariPreprocessor, s)
     colorimg = colorview(RGB, reshape(normedview(s), 3, 160, 210))
-    push!(p.buffer, reshape(Float64.(imresize(Gray.(colorimg), 84, 84)), 
-                            84, 84, 1, 1))
-    cat(3, p.buffer...)
+    Flux.gpu(reshape(Float64.(imresize(Gray.(colorimg), 84, 84)), 84, 84, 1))
 end
 function preprocessstate(p::AtariPreprocessor, ::Void)
-    push!(p.buffer, zeros(84, 84, 1, 1))
-    cat(3, p.buffer...)
+    Flux.gpu(zeros(Float64, 84, 84, 1))
 end
 
 mutable struct RepeatActionPolicy{T}

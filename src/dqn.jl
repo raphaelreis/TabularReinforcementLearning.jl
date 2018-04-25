@@ -5,29 +5,35 @@ mutable struct DQN{Tnet,Tbuff,Topt}
     policynet::Tnet
     updatetargetevery::Int64
     t::Int64
-    nsteps::Int64
     updateevery::Int64
     opt::Topt
     startlearningat::Int64
     minibatchsize::Int64
     doubledqn::Bool
+    nmarkov::Int64
 end
 export DQN
 function DQN(net; replaysize = 10^4, γ = .99, updatetargetevery = 500,
-                  statetype = Array{Float64, 1}, nsteps = 1, 
-                  startlearningat = 10^3, minibatchsize = 32,
+                  datatype = Float64, arraytype = AbstractArray, elemshape = (),
+                  startlearningat = 10^3, minibatchsize = 32, nmarkov = 1,
                   opt = Flux.ADAM, updateevery = 4, doubledqn = false)
     net = Flux.gpu(net)
     θ = Flux.params(net)
-    DQN(γ, Buffer(; capacity = replaysize, statetype = statetype),
+    DQN(γ, ArrayStateBuffer(; capacity = replaysize, 
+                              datatype = datatype,
+                              arraytype = arraytype,
+                              elemshape = elemshape),
         Flux.mapleaves(Flux.Tracker.data, deepcopy(net)), 
         net,
         Flux.mapleaves(Flux.Tracker.data, net), 
-        updatetargetevery, 0, nsteps, 
-        updateevery, opt(θ), startlearningat, minibatchsize, doubledqn)
+        updatetargetevery, 0,
+        updateevery, opt(θ), startlearningat, minibatchsize, doubledqn, nmarkov)
 end
+
 @inline function selectaction(learner::DQN, policy, state)
-    selectaction(policy, learner.policynet(Flux.gpu(state)))
+    selectaction(policy, learner.policynet(view(learner.buffer.states,
+                                                endof(learner.buffer.states),
+                                                learner.nmarkov)))
 end
 function selecta(q, a)
     na, t = size(q)
@@ -42,14 +48,15 @@ function update!(learner::DQN)
         Flux.loadparams!(learner.targetnet, Flux.params(learner.policynet))
     end
     b = learner.buffer
-    indices = StatsBase.sample(1:length(b.rewards), learner.minibatchsize, replace = false)
-    qa = learner.trainnet(Flux.gpu(lastcat(b.states[indices])))
-    qat = learner.targetnet(Flux.gpu(lastcat(b.states[indices + 1])))
+    indices = StatsBase.sample(learner.nmarkov:length(b.rewards), 
+                               learner.minibatchsize, replace = false)
+    qa = learner.trainnet(view(b.states, indices, learner.nmarkov))
+    qat = learner.targetnet(view(b.states, indices + 1, learner.nmarkov))
     q = selecta(qa, b.actions[indices])
     rs = Float64[]
     for (k, i) in enumerate(indices)
-        r, γeff = discountedrewards(b.rewards[i:i + learner.nsteps - 1], 
-                                    b.done[i:i + learner.nsteps - 1], learner.γ)
+        r, γeff = discountedrewards(b.rewards[i], 
+                                    b.done[i], learner.γ)
         if γeff > 0
             if learner.doubledqn
                 r += learner.γ * qat[indmax(qa.data[:,k]), k]

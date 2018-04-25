@@ -5,17 +5,18 @@ using TabularReinforcementLearning, Flux
 # using CuArrays
 env = AtariEnv("examples/atarirom_files/breakout.bin")
 na = length(getMinimalActionSet(env.ale))
-learner = DQN(Flux.Chain(Flux.Conv((8, 8), 4 => 32, relu, stride = (4, 4)), 
-                         Flux.Conv((4, 4), 32 => 64, relu, stride = (2, 2)),
-                         Flux.Conv((3, 3), 64 => 64, relu),
-                         x -> reshape(x, :, size(x, 4)),
-                         Flux.Dense(3136, 512, relu), Linear(512, na)),
+learner = DQN(Chain(Conv((8, 8), 4 => 32, relu, stride = (4, 4)), 
+                         Conv((4, 4), 32 => 64, relu, stride = (2, 2)),
+                         Conv((3, 3), 64 => 64, relu),
+                         x -> reshape(x, :, size(x, 4)), nmarkov = 4,
+                         Dense(3136, 512, relu), Linear(512, na)),
               updatetargetevery = 500, replaysize = 10^6,
-              startlearningat = 50000);
+              startlearningat = 1000, minibatchsize = 14);
 x = RLSetup(Agent(learner, policy = RepeatActionPolicy(), 
                   preprocessor = AtariPreprocessor(),
-                  callback = LinearDecreaseEpsilon(5 * 10^4, 10^6, 1, .1)), 
+                  callback = ListofCallbacks([Progress(),
+                             LinearDecreaseEpsilon(5 * 10^4, 10^6, 1, .1)])), 
             env,
             EvaluationPerEpisode(TotalReward()),
-            ConstantNumberSteps(200000));
+            ConstantNumberSteps(2000));
 @time learn!(x)

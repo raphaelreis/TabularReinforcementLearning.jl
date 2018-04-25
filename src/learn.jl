@@ -85,7 +85,8 @@ function RLSetup(agent, env, metric::TM, stop::TS) where {TM, TS} # most elegant
     else
         s = getstate(env)[1]
     end
-    Tstate = typeof(preprocessstate(agent.preprocessor, s))
+    s = preprocessstate(agent.preprocessor, s)
+    Tstate = typeof(s)
     b = agent.learner.buffer
     if Tstate != typeof(b).parameters[1]
         info("Detected type of state after preprocessing: $Tstate.")
@@ -95,6 +96,11 @@ function RLSetup(agent, env, metric::TM, stop::TS) where {TM, TS} # most elegant
             if field == :states
                 if typeof(b.states) <: CircularBuffer
                     push!(fields, CircularBuffer{Tstate}(b.states.capacity))
+                elseif typeof(b.states) <: ArrayCircularBuffer
+                    push!(fields, ArrayCircularBuffer(Tstate.name.wrapper,
+                                                      Tstate.parameters[1],
+                                                      size(s),
+                                                      b.states.capacity))
                 else
                     push!(fields, Array{Tstate, 1})
                 end
@@ -169,15 +175,17 @@ run!(agent, env, metric, stop, withlearning = false) =
                             interact!(learner.buffer.actions[end], env)...)
     pushreturn!(learner.buffer, r, done)
     if done; s = preprocessstate(preprocessor, reset!(env)) end
+    pushstate!(learner.buffer, s)
     a = selectaction(learner, policy, s)
-    pushstateaction!(learner.buffer, s, a)
+    pushaction!(learner.buffer, a)
     r, done
 end
 @inline function firststateaction!(learner, policy, preprocessor, env)
     if isempty(learner.buffer.actions)
         s = preprocessstate(preprocessor, getstate(env)[1])
+        pushstate!(learner.buffer, s)
         a = selectaction(learner, policy, s)
-        pushstateaction!(learner.buffer, s, a)
+        pushaction!(learner.buffer, a)
     end
 end
 

@@ -12,9 +12,11 @@ function Buffer(; statetype = Int64, actiontype = Int64, capacity = 2)
            CircularBuffer{Bool}(capacity-1))
 end
 function pushstateaction!(b, s, a)
-    push!(b.states, deepcopy(s))
-    push!(b.actions, deepcopy(a))
+    pushstate!(b, s)
+    pushaction!(b, a)
 end
+pushstate!(b, s) = push!(b.states, deepcopy(s))
+pushaction!(b, a) = push!(b.actions, a)
 function pushreturn!(b, r, done)
     push!(b.rewards, r)
     push!(b.done, done)
@@ -59,3 +61,62 @@ pushstateaction!(b::AdvantageBuffer, s, a) = push!(b.actions, a)
 
 import DataStructures.isfull
 isfull(b::Union{Buffer, AdvantageBuffer}) = isfull(b.rewards)
+
+
+struct ArrayCircularBuffer{T}
+    data::T
+    capacity::Int64
+    counter::Array{Int64}
+end
+function ArrayCircularBuffer(arraytype, datatype, elemshape, capacity)
+    ArrayCircularBuffer(arraytype(zeros(datatype, elemshape..., capacity)),
+                        capacity, [0])
+end
+import Base.push!, Base.view, Base.endof
+for N in 2:5
+    @eval current_module() begin
+        function push!(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, x) where T
+            setindex!(a.data, x, $(fill(Colon(), N-1)...), a.counter[1] + 1)
+            a.counter[1] += 1
+            a.counter[1] = a.counter[1] % a.capacity
+            a.data
+        end
+        @inline function view(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, i) where T
+            idx = (a.counter[1] + i - 1) .% a.capacity + 1
+            view(a.data, $(fill(Colon(), N-1)...), idx)
+        end
+        @inline function view(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, i, nmarkov) where T
+            nmarkov == 1 && return view(a, i)
+            numi = typeof(i) <: Number ? 1 : length(i)
+            idx = zeros(Int64, numi*nmarkov)
+            c = 1
+            for j in i
+                for k in j - nmarkov + 1:j
+                    idx[c] = (a.counter[1] + k - 1) % a.capacity + 1
+                    c += 1
+                end
+            end
+            res = view(a.data, $(fill(Colon(), N-1)...), idx)
+            s = size(res)
+            reshape(res, $([:(s[$x]) for x in 1:N-2]...), nmarkov, numi)
+        end
+    end
+end
+endof(a::ArrayCircularBuffer) = a.capacity
+
+struct ArrayStateBuffer{Ts, Ta}
+    states::ArrayCircularBuffer{Ts}
+    actions::CircularBuffer{Ta}
+    rewards::CircularBuffer{Float64}
+    done::CircularBuffer{Bool}
+end
+export ArrayStateBuffer
+function ArrayStateBuffer(; arraytype = Array, datatype = Float64, 
+                            elemshape = (1),
+                            actiontype = Int64, capacity = 2)
+    ArrayStateBuffer(ArrayCircularBuffer(arraytype, datatype, elemshape, capacity),
+                     CircularBuffer{actiontype}(capacity),
+                     CircularBuffer{Float64}(capacity-1),
+                     CircularBuffer{Bool}(capacity-1))
+end
+pushstate!(b::ArrayStateBuffer, s) = push!(b.states, s)
