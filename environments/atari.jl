@@ -34,10 +34,10 @@ reset!(env::AtariEnv) = reset_game(env.ale)
 struct AtariPreprocessor end
 function preprocessstate(::AtariPreprocessor, s)
     colorimg = colorview(RGB, reshape(normedview(s), 3, 160, 210))
-    Flux.gpu(reshape(Float64.(imresize(Gray.(colorimg), 84, 84)), 84, 84, 1))
+    Flux.gpu(reshape(Float16.(imresize(Gray.(colorimg), 84, 84)), 84, 84, 1))
 end
 function preprocessstate(p::AtariPreprocessor, ::Void)
-    Flux.gpu(zeros(Float64, 84, 84, 1))
+    Flux.gpu(zeros(Float16, 84, 84, 1))
 end
 
 mutable struct RepeatActionPolicy{T}

@@ -79,7 +79,8 @@ end
 import Requires: @require
 @require CuArrays begin
     import CuArrays: conv!, ∇conv_filter!, cudnnConvolutionForward,
-    cudnnConvolutionBackwardFilter, CuArray, CUDNNFloat
+    cudnnConvolutionBackwardFilter, CuArray
+    const CUDNNFloat = Union{Float16,Float32,Float64}
     function conv!(y::A, x, w::A;
                    pad=0, stride=1, mode=0, alpha=1) where A<:CuArray{<:CUDNNFloat}
         cudnnConvolutionForward(y, x, w, padding=pad, stride=stride, mode=mode, alpha=alpha)
