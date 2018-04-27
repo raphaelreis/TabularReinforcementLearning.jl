@@ -44,3 +44,25 @@ for learner in [PolicyGradientBackward, EpisodicReinforce,
     learn!(y)
     @test x.agent.learner.params ≈ y.agent.learner.params 
 end
+
+using Flux
+ns = 10; na = 4;
+env = MDP(; ns = ns, na = na, init = "deterministic")
+policy = ForcedPolicy(rand(1:na, 200))
+learner = DQN(Linear(ns, na), replaysize = 2, updatetargetevery = 1, 
+              updateevery = 1, startlearningat = 1, opt = x -> Flux.SGD(x, .05), 
+              minibatchsize = 1)
+agent = Agent(learner, preprocessor = OneHotPreprocessor(ns), policy = policy)
+x = RLSetup(agent, env, EvaluationPerT(10^3, MeanReward()),
+            ConstantNumberSteps(90))
+x2 = RLSetup(Agent(QLearning(λ = 0, γ = .99, initvalue = 0., 
+                             discretestates = true, α = .1), policy = policy),
+             env, EvaluationPerT(10^3, MeanReward()), ConstantNumberSteps(90))
+srand(445)
+reset!(env)
+learn!(x)
+srand(445)
+reset!(env)
+x2.agent.policy.t = 1
+learn!(x2)
+@test x.agent.learner.policynet.W ≈ x2.agent.learner.params

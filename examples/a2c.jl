@@ -80,15 +80,22 @@ pgfplot(Plot(Coordinates(1:length(xeval.metric.values), xeval.metric.values)), "
 
 env = CartPole();
 using Flux
-learner = DQN(Chain(Dense(4, 24, relu), #Dense(24, 24, relu),
-                    Dense(24, 2)),
-              minibatchsize = 16, doubledqn = true);
-# learner = DeepActorCritic(Chain(Dense(4, 24, relu), 
-#                                 Dense(24, 24, relu)),
-#                            nh = 24, na = 2, nsteps = 25, αcritic = 0.);
-# learner = ActorCriticPolicyGradient(ns = 4, na = 2, nsteps = 25, αcritic = 0.);
-x = RLSetup(Agent(learner), 
-            env, EvaluationPerEpisode(TotalReward()),
+learner = DQN(Chain(Dense(4, 20, relu), #Dense(128, 128, relu),
+                    Dense(20, 2)),
+              minibatchsize = 32, doubledqn = false, γ = .9, 
+              opt = x -> ADAM(x, .0001), updateevery = 1,
+             replaysize = 10000, updatetargetevery = 100, startlearningat = 100);
+# learner = DeepActorCritic(Chain(Dense(4, 20, relu)), nenvs = 10,
+#                           statetype = Int64,
+#                            nh = 20, na = 2, nsteps = 25, αcritic = 0.);
+# # # learner = ActorCriticPolicyGradient(ns = 4, na = 2, nsteps = 25, αcritic = 0.);
+x = RLSetup(Agent(learner
+#                    , callback = LinearDecreaseEpsilon(1, 4*10^4, .5, .01)
+                 ), 
+#               [CartPole() for _ in 1:10], 
+               env,
+            EvaluationPerEpisode(TotalReward()),
+#             RecordAll(),
                   ConstantNumberSteps(10^5));
 @time learn!(x)
 pgfplot(Plot(Coordinates(1:length(x.metric.values), x.metric.values)), "/tmp/juliaF9BrwQ.pdf")

@@ -104,9 +104,11 @@ function LinearDecreaseEpsilon(start, stop, initval, finalval)
 end
 function callback!(c::LinearDecreaseEpsilon, learner, policy, metric, stop)
     c.t += 1
-    if c.t == 1 policy.ϵ = c.initval end
-    if c.t >= c.start && c.t < c.stop
-        policy.ϵ -= c.step
+    if c.t == 1 policy.ϵ = c.initval
+    elseif c.t >= c.start && c.t < c.stop
+        policy.ϵ += c.step
+    else
+        policy.ϵ = c.finalvalue
     end
 end
 

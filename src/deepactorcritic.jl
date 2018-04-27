@@ -14,7 +14,8 @@ function DeepActorCritic(model; nh = 4, na = 2, γ = .9, nsteps = 5, η = .1,
                          statetype = Array{Float64, 1},
                          αcritic = .1, nenvs = 1)
     θ = vcat(map(Flux.params, [model, policylayer, valuelayer])...)
-    buffer = Buffer(capacity = nenvs * (nsteps + 1), statetype = statetype)
+    buffer = Buffer(capacitystates = nenvs * (nsteps + 1),
+                    capacityrewards = nenvs * nsteps, statetype = statetype)
     DeepActorCritic(γ, buffer, model, policylayer, valuelayer, opt(θ), αcritic, nenvs)
 end
 @inline function selectaction(learner::DeepActorCritic, policy, state)

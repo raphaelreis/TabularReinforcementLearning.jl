@@ -1,7 +1,7 @@
-mutable struct DQN{Tnet,Tbuff,Topt}
+mutable struct DQN{Tnet,TnetT,Tbuff,Topt}
     @common_learner_fields
     targetnet::Tnet
-    trainnet::Tnet
+    trainnet::TnetT
     policynet::Tnet
     updatetargetevery::Int64
     t::Int64
@@ -16,7 +16,7 @@ export DQN
 function DQN(net; replaysize = 10^4, γ = .99, updatetargetevery = 500,
                   datatype = Float64, arraytype = AbstractArray, elemshape = (),
                   startlearningat = 10^3, minibatchsize = 32, nmarkov = 1,
-                  opt = Flux.ADAM, updateevery = 4, doubledqn = false)
+                  opt = Flux.ADAM, updateevery = 1, doubledqn = false)
     net = Flux.gpu(net)
     θ = Flux.params(net)
     DQN(γ, ArrayStateBuffer(; capacity = replaysize, 
@@ -42,10 +42,10 @@ end
 import StatsBase
 function update!(learner::DQN)
     learner.t += 1
-    (learner.t <= learner.startlearningat || 
+    (learner.t < learner.startlearningat || 
      learner.t % learner.updateevery != 0) && return
     if learner.t % learner.updatetargetevery == 0
-        Flux.loadparams!(learner.targetnet, Flux.params(learner.policynet))
+        learner.targetnet = deepcopy(learner.policynet)
     end
     b = learner.buffer
     indices = StatsBase.sample(learner.nmarkov:length(b.rewards), 
@@ -55,13 +55,12 @@ function update!(learner::DQN)
     q = selecta(qa, b.actions[indices])
     rs = Float64[]
     for (k, i) in enumerate(indices)
-        r, γeff = discountedrewards(b.rewards[i], 
-                                    b.done[i], learner.γ)
+        r, γeff = discountedrewards(b.rewards[i], b.done[i], learner.γ)
         if γeff > 0
             if learner.doubledqn
-                r += learner.γ * qat[indmax(qa.data[:,k]), k]
+                r += γeff * qat[indmax(qa.data[:,k]), k]
             else
-                r += learner.γ * maximum(qat[:, k])
+                r += γeff * maximum(qat[:, k])
             end
         end
         push!(rs, r)

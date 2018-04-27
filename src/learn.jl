@@ -88,7 +88,7 @@ function RLSetup(agent, env, metric::TM, stop::TS) where {TM, TS} # most elegant
     s = preprocessstate(agent.preprocessor, s)
     Tstate = typeof(s)
     b = agent.learner.buffer
-    if Tstate != typeof(b).parameters[1]
+    if Tstate != typeof(b).parameters[1] || typeof(b) <: ArrayStateBuffer
         info("Detected type of state after preprocessing: $Tstate.")
         buffertype = typeof(b)
         fields = []
@@ -170,9 +170,9 @@ run!(agent, env, metric, stop, withlearning = false) =
 """
     learn!(learner, policy, callback, environment, metric, stoppingcriterion)
 """
-@inline function step!(learner, policy, env, preprocessor)
+@inline function step!(learner, policy, env, preprocessor, offset = 0)
     s, r, done = preprocess(preprocessor, 
-                            interact!(learner.buffer.actions[end], env)...)
+                            interact!(learner.buffer.actions[end - offset], env)...)
     pushreturn!(learner.buffer, r, done)
     if done; s = preprocessstate(preprocessor, reset!(env)) end
     pushstate!(learner.buffer, s)
@@ -180,8 +180,9 @@ run!(agent, env, metric, stop, withlearning = false) =
     pushaction!(learner.buffer, a)
     r, done
 end
-@inline function firststateaction!(learner, policy, preprocessor, env)
-    if isempty(learner.buffer.actions)
+@inline function firststateaction!(learner, policy, preprocessor, env, 
+                                   force = false)
+    if isempty(learner.buffer.actions) || force
         s = preprocessstate(preprocessor, getstate(env)[1])
         pushstate!(learner.buffer, s)
         a = selectaction(learner, policy, s)
@@ -212,9 +213,15 @@ end
 end
 @inline function run!(learner, policy, callback, preprocessor,
                       envs::AbstractArray, metric, stop, withlearning = false)
-    for i in 1:length(envs)
-        run!(learner, policy, callback, preprocessor, envs[i], 
-             metric, stop, withlearning)
+    for env in envs; firststateaction!(learner, policy, preprocessor, env, true) end
+    while true
+        for env in envs
+            r, done = step!(learner, policy, env, preprocessor, length(envs) - 1)
+            evaluate!(metric, r, done, learner.buffer)
+            callback!(callback, learner, policy, metric, stop)
+        end
+        if withlearning; update!(learner); end
+        if isbreak!(stop, done, learner.buffer); break; end
     end
 end
 

@@ -172,8 +172,8 @@ Initializes with empty arrays.
 RecordAll() = RecordAll(Float64[], Int64[], [], Bool[])
 function evaluate!(p::RecordAll, r, done, buffer)
     push!(p.r, r)
-    push!(p.a, buffer.actions[1])
-    push!(p.s, buffer.states[1])
+    push!(p.a, buffer.actions[end])
+    push!(p.s, buffer.states[end])
     push!(p.done, done)
 end
 function reset!(p::RecordAll)

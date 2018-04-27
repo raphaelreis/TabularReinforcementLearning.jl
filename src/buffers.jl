@@ -5,11 +5,13 @@ struct Buffer{Ts, Ta}
     done::CircularBuffer{Bool}
 end
 export Buffer
-function Buffer(; statetype = Int64, actiontype = Int64, capacity = 2)
-    Buffer(CircularBuffer{statetype}(capacity),
-           CircularBuffer{actiontype}(capacity),
-           CircularBuffer{Float64}(capacity-1),
-           CircularBuffer{Bool}(capacity-1))
+function Buffer(; statetype = Int64, actiontype = Int64, 
+                  capacity = 2, capacitystates = capacity,
+                  capacityrewards = capacity - 1)
+    Buffer(CircularBuffer{statetype}(capacitystates),
+           CircularBuffer{actiontype}(capacitystates),
+           CircularBuffer{Float64}(capacityrewards),
+           CircularBuffer{Bool}(capacityrewards))
 end
 function pushstateaction!(b, s, a)
     pushstate!(b, s)
@@ -72,7 +74,7 @@ function ArrayCircularBuffer(arraytype, datatype, elemshape, capacity)
     ArrayCircularBuffer(arraytype(zeros(datatype, elemshape..., capacity)),
                         capacity, [0])
 end
-import Base.push!, Base.view, Base.endof
+import Base.push!, Base.view, Base.endof, Base.getindex
 for N in 2:5
     @eval current_module() begin
         function push!(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, x) where T
@@ -84,6 +86,10 @@ for N in 2:5
         @inline function view(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, i) where T
             idx = (a.counter[1] + i - 1) .% a.capacity + 1
             view(a.data, $(fill(Colon(), N-1)...), idx)
+        end
+        @inline function getindex(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, i) where T
+            idx = (a.counter[1] + i - 1) .% a.capacity + 1
+            getindex(a.data, $(fill(Colon(), N-1)...), idx)
         end
         @inline function view(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, i, nmarkov) where T
             nmarkov == 1 && return view(a, i)
