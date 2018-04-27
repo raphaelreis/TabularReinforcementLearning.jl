@@ -31,7 +31,7 @@ function DQN(net; replaysize = 10^4, γ = .99, updatetargetevery = 500,
 end
 
 @inline function selectaction(learner::DQN, policy, state)
-    selectaction(policy, learner.policynet(view(learner.buffer.states,
+    selectaction(policy, learner.policynet(getindex(learner.buffer.states,
                                                 endof(learner.buffer.states),
                                                 learner.nmarkov)))
 end
@@ -50,8 +50,8 @@ function update!(learner::DQN)
     b = learner.buffer
     indices = StatsBase.sample(learner.nmarkov:length(b.rewards), 
                                learner.minibatchsize, replace = false)
-    qa = learner.trainnet(view(b.states, indices, learner.nmarkov))
-    qat = learner.targetnet(view(b.states, indices + 1, learner.nmarkov))
+    qa = learner.trainnet(getindex(b.states, indices, learner.nmarkov))
+    qat = learner.targetnet(getindex(b.states, indices + 1, learner.nmarkov))
     q = selecta(qa, b.actions[indices])
     rs = Float64[]
     for (k, i) in enumerate(indices)

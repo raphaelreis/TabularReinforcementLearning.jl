@@ -83,28 +83,28 @@ for N in 2:5
             a.counter[1] = a.counter[1] % a.capacity
             a.data
         end
-        @inline function view(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, i) where T
-            idx = (a.counter[1] + i - 1) .% a.capacity + 1
-            view(a.data, $(fill(Colon(), N-1)...), idx)
-        end
-        @inline function getindex(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, i) where T
-            idx = (a.counter[1] + i - 1) .% a.capacity + 1
-            getindex(a.data, $(fill(Colon(), N-1)...), idx)
-        end
-        @inline function view(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, i, nmarkov) where T
-            nmarkov == 1 && return view(a, i)
-            numi = typeof(i) <: Number ? 1 : length(i)
-            idx = zeros(Int64, numi*nmarkov)
-            c = 1
-            for j in i
-                for k in j - nmarkov + 1:j
-                    idx[c] = (a.counter[1] + k - 1) % a.capacity + 1
-                    c += 1
-                end
+    end
+    for func in [:view, :getindex]
+        @eval current_module() begin
+            @inline function $func(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, i) where T
+                idx = (a.counter[1] + i - 1) .% a.capacity + 1
+                $func(a.data, $(fill(Colon(), N-1)...), idx)
             end
-            res = view(a.data, $(fill(Colon(), N-1)...), idx)
-            s = size(res)
-            reshape(res, $([:(s[$x]) for x in 1:N-2]...), nmarkov, numi)
+            @inline function $func(a::ArrayCircularBuffer{<:AbstractArray{T, $N}}, i, nmarkov) where T
+                nmarkov == 1 && return $func(a, i)
+                numi = typeof(i) <: Number ? 1 : length(i)
+                idx = zeros(Int64, numi*nmarkov)
+                c = 1
+                for j in i
+                    for k in j - nmarkov + 1:j
+                        idx[c] = (a.counter[1] + k - 1) % a.capacity + 1
+                        c += 1
+                    end
+                end
+                res = $func(a.data, $(fill(Colon(), N-1)...), idx)
+                s = size(res)
+                reshape(res, $([:(s[$x]) for x in 1:N-2]...), nmarkov, numi)
+            end
         end
     end
 end
