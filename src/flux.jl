@@ -75,3 +75,17 @@ function conv2d_grad_w!{T}(dw::AbstractArray{T,4}, x, w::AbstractArray{T,4}, dy:
     end
     return dw
 end
+
+import Requires: @require
+@require CuArrays begin
+    import CuArrays: conv!, ∇conv_filter!
+    function conv!(y::A, x, w::A;
+                   pad=0, stride=1, mode=0, alpha=1) where A<:CuArray{<:CUDNNFloat}
+        cudnnConvolutionForward(y, x, w, padding=pad, stride=stride, mode=mode, alpha=alpha)
+    end
+
+    function ∇conv_filter!(dw::A, dy::A, x, w::A;
+                           pad=0, stride=1, mode=0, alpha=1) where A<:CuArray{<:CUDNNFloat}
+      cudnnConvolutionBackwardFilter(dw, x, w, dy, padding=pad, stride=stride, mode=mode, alpha=alpha)
+    end
+end
