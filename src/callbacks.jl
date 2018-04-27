@@ -112,10 +112,12 @@ function callback!(c::LinearDecreaseEpsilon, learner, policy, metric, stop)
     end
 end
 
-struct Progress <: AbstractCallback end
+struct Progress <: AbstractCallback 
+    steps::Int64
+end
 export Progress
 function callback!(c::Progress, learner, policy, metric, stop::ConstantNumberSteps)
-    if stop.counter % div(stop.T, 10) == 0
+    if stop.counter % div(stop.T, c.steps) == 0
         value = getvalue(metric)
         lastvaluestring = length(value) > 1 ? "; last value: $(value[end])" : ""
         info("$(now()) $(stop.counter) of $(stop.T) steps$lastvaluestring.")
