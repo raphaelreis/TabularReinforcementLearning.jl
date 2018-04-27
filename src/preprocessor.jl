@@ -32,11 +32,11 @@ end
 StateAggregator(lb::Number, ub::Number, nbins::Int, ndims::Int; perdimension = false) =
     StateAggregator(lb * ones(ndims), ub * ones(ndims), nbins * ones(ndims))
 
-@inline indexinbox(x, l, h, n) = round(Int64, (n - 1) * (x - l)/(h - l)) |> 
+@inline indexinbox(x, l, h, n) = round(Int64, (n - 1) * (x - l)/(h - l)) |>
                                    i -> max(min(i, n), 0)
 
 function preprocessstate(p::StateAggregator, s)
-    indices = [indexinbox(s[i], p.box.low[i], p.box.high[i], p.nbins[i]) 
+    indices = [indexinbox(s[i], p.box.low[i], p.box.high[i], p.nbins[i])
                for i in 1:length(s)]
     if p.perdimension
         sp = zeros(sum(p.nbins))
@@ -44,10 +44,44 @@ function preprocessstate(p::StateAggregator, s)
         for i in 1:length(s)
             sp[indices[i] + 1 + p.offsets[i]] = 1.
         end
-        sp
     else
-        dot(indices, p.offsets) + 1
+        sp = zeros((*)(p.nbins...))
+        sp[dot(indices, p.offsets) + 1] = 1
     end
+    sp
+end
+
+struct TilingStateAggregator{T <: Array{StateAggregator,1}}
+    tiling::T
+end
+export TilingStateAggregator
+
+function preprocessstate(p::TilingStateAggregator, s)
+    sp = []
+    s_copy = s
+    for i in 1:length(p.tiling)
+        s = preprocessstate(p.tiling[i], s_copy)
+        sp = vcat(sp, s)
+    end
+    sp = convert(Array{Float64,1}, sp)
+    sp
+end
+
+function tilingparams(length, nr_tiling, nr_bins_per_tile)
+    w = length / (nr_bins_per_tile - (nr_tiling-1)/nr_tiling)
+    offset = w * (nr_tiling-1)/nr_tiling
+    k = w/nr_tiling
+    println("offset, k, w : $(offset), $(k), $(w)")
+    offset, k, w
+end
+
+function TilingStateAggregator(p::StateAggregator, nr_tiling)
+    length = p.box.high - p.box.low
+    nr_bins_per_tile = prod(p.nbins)
+    offset, k, w = tilingparams(length, nr_tiling, nr_bins_per_tile)
+    stateAgg_array = [StateAggregator(p.box.low-offset+i*k,p.box.high+i*k,p.nbins)
+                        for i=0:nr_tiling-1]
+    TilingStateAggregator(stateAgg_array)
 end
 
 struct RadialBasisFunctions
@@ -59,8 +93,8 @@ export RadialBasisFunctions
 function RadialBasisFunctions(box::Box, n, sigma)
     dim = length(box.low)
     means = [rand(dim) .* (box.high - box.low) .+ box.low for _ in 1:n]
-    RadialBasisFunctions(means, 
-                         typeof(sigma) <: Number ? fill(sigma, n) : sigma, 
+    RadialBasisFunctions(means,
+                         typeof(sigma) <: Number ? fill(sigma, n) : sigma,
                          zeros(n))
 end
 function preprocessstate(p::RadialBasisFunctions, s)
