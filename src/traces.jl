@@ -18,7 +18,7 @@ for kind in (:ReplacingTraces, :AccumulatingTraces)
             export $kind;
             function $kind(ns, na, λ::Float64, γ::Float64; 
                            minimaltracevalue = 1e-12,
-                           trace = sparse([], [], [], na, ns))
+                           trace = sparse([], [], Float64[], na, ns))
                 $kind(λ, γ*λ, trace, minimaltracevalue)
             end)
 end
@@ -71,7 +71,11 @@ function increasetrace!(traces::ReplacingTraces, state::SparseVector, action)
     end
 end
 function increasetrace!(traces::AccumulatingTraces, state::Int, action)
-    traces.trace[action, state] += 1.
+    if traces.trace[action, state] == 0
+        traces.trace[action, state] = 1.
+    else
+        traces.trace[action, state] += 1.
+    end
 end
 function increasetrace!(traces::AccumulatingTraces, state::Vector, action)
     @inbounds for i in find(state)
