@@ -118,11 +118,12 @@ end
 
 
 @inline getvalue(params, state::Int) = params[:, state]
-@inline getvalue(params::Vector, state::Int) = params[state]
+@inline getvalue(params::AbstractArray, state::Int) = params[state]
 @inline getvalue(params, action::Int, state::Int) = params[action, state]
-@inline getvalue(params, state::Vector) = params * state
+@inline getvalue(params, state::AbstractArray) = params * state
 @inline getvalue(params::Vector, state::Vector) = dot(params, state)
-@inline getvalue(params, action::Int, state::Vector) = dot(params[action, :], state)
+@inline getvalue(params, action::Int, state::AbstractArray) = 
+    dot(view(params, action, :), state)
 
 selectaction(agent::Agent, state) = selectaction(agent.learner, agent.policy, state) 
 @inline function selectaction(learner::Union{TDLearner, AbstractPolicyGradient}, 

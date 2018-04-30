@@ -31,6 +31,7 @@ export Sarsa, QLearning, ExpectedSarsa
 # td error
 
 @inline getvaluecheckinf(learner, a, s) = checkinf(learner, getvalue(learner.params, a, s))
+@inline getvaluecheckinf(learner, a, s::AbstractArray) = getvalue(learner.params, a, s)
 @inline checkinf(learner, value) = (value == Inf64 ? learner.unseenvalue : value)
 
 @inline function futurevalue(learner)
@@ -86,6 +87,11 @@ end
 @inline function updateparam!(learner, s::Vector, a, δ)
     na, ns = size(learner.params)
     BLAS.axpy!(learner.α * δ, s, 1:ns, learner.params, a:na:na * (ns - 1) + a)
+end
+@inline function updateparam!(learner, s::SparseVector, a, δ)
+    @simd for i in 1:length(s.nzind)
+        learner.params[a, s.nzind[i]] += learner.α * δ * s.nzval[i]
+    end
 end
 
 @inline updatetraceandparams!(learner::TDLearner{NoTraces, <:Any}, s, a, δ) =
