@@ -61,8 +61,6 @@ function AdvantageBuffer(; gradienttype = Array{Any, 1}, actiontype = Int64,
 end
 pushstateaction!(b::AdvantageBuffer, s, a) = push!(b.actions, a)
 
-import DataStructures.isfull
-isfull(b::Union{Buffer, AdvantageBuffer}) = isfull(b.rewards)
 
 
 struct ArrayCircularBuffer{T}
@@ -118,11 +116,16 @@ struct ArrayStateBuffer{Ts, Ta}
 end
 export ArrayStateBuffer
 function ArrayStateBuffer(; arraytype = Array, datatype = Float64, 
-                            elemshape = (1),
-                            actiontype = Int64, capacity = 2)
-    ArrayStateBuffer(ArrayCircularBuffer(arraytype, datatype, elemshape, capacity),
-                     CircularBuffer{actiontype}(capacity),
-                     CircularBuffer{Float64}(capacity-1),
-                     CircularBuffer{Bool}(capacity-1))
+                            elemshape = (1), actiontype = Int64, 
+                            capacity = 2, capacitystates = capacity,
+                            capacityrewards = capacity - 1)
+    ArrayStateBuffer(ArrayCircularBuffer(arraytype, datatype, elemshape, 
+                                         capacitystates),
+                     CircularBuffer{actiontype}(capacitystates),
+                     CircularBuffer{Float64}(capacityrewards),
+                     CircularBuffer{Bool}(capacityrewards))
 end
 pushstate!(b::ArrayStateBuffer, s) = push!(b.states, s)
+
+import DataStructures.isfull
+isfull(b::Union{Buffer, AdvantageBuffer, ArrayStateBuffer}) = isfull(b.rewards)
