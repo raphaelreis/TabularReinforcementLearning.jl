@@ -118,7 +118,7 @@ end
 
 
 @inline getvalue(params, state::Int) = params[:, state]
-@inline getvalue(params::AbstractArray, state::Int) = params[state]
+@inline getvalue(params::Vector, state::Int) = params[state]
 @inline getvalue(params, action::Int, state::Int) = params[action, state]
 @inline getvalue(params, state::AbstractArray) = params * state
 @inline getvalue(params::Vector, state::Vector) = dot(params, state)

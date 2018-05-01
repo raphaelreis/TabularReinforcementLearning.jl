@@ -38,7 +38,8 @@ function PolicyGradientBackward(; ns = 10, na = 4, α = .1, γ = .9,
                                   buffer = Buffer(statetype = statetype),
                                   biascorrector = NoBiasCorrector())
         PolicyGradientBackward(γ, buffer, α, zeros(na, ns) + initvalue,
-                               tracekind(ns, na, 1., γ),
+                               tracekind(ns, na, 1., γ, 
+                                         trace = zeros(na, ns)),
                                biascorrector, Float64(initvalue))
 end
 

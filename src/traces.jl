@@ -89,23 +89,31 @@ function increasetrace!(traces::AccumulatingTraces, state::SparseVector, action)
 end
 
 
-function discounttraces!(traces)
-    BLAS.scale!(traces.γλ, traces.trace.nzval)
+discounttraces!(t) = discounttraces!(t.trace, t.γλ, t.minimaltracevalue)
+@inline function discounttraces!(trace::SparseMatrixCSC, γλ, minimaltracevalue)
+    BLAS.scale!(γλ, trace.nzval)
     if rand() < .01
-        clamp!(traces.trace.nzval, traces.minimaltracevalue, Inf)
+        clamp!(trace.nzval, minimaltracevalue, Inf)
     end
 end
+@inline discounttraces!(trace, γλ, minimaltracevalue) = BLAS.scale!(γλ, trace)
 resettraces!(traces) = BLAS.scale!(0., traces.trace)
 
 function updatetraceandparams!(traces, params, factor)
-    s = traces.trace
+    updatetraceandparams!(traces.trace, params, factor)
+    discounttraces!(traces)
+end
+
+@inline function updatetraceandparams!(s::SparseMatrixCSC, params, factor)
     c = 1
     @inbounds for k in 1:length(s.nzval)
         while s.colptr[c+1] - 1 < k || s.colptr[c] == s.colptr[c+1]; c += 1; end
         params[s.rowval[k], c] += factor * s.nzval[k]
     end
-    discounttraces!(traces)
 end
+@inline updatetraceandparams!(t::AbstractArray, params, factor) = 
+    BLAS.axpy!(factor, t, params)
+
 
 function updatetrace!(traces, state, action)
     discounttraces!(traces)
