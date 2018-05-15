@@ -12,3 +12,4 @@ using Base.Test
 # @testset "policy gradient" begin include("policygradient.jl") end
 @testset "monte carlo" begin include("montecarlo.jl") end
 @testset "small backups" begin include("smallbackups.jl") end
+@testset "stateaggregator" begin include("stateaggregator.jl") end
