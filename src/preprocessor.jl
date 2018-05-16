@@ -67,18 +67,17 @@ function preprocessstate(p::TilingStateAggregator, s)
     sp
 end
 
-function tilingparams(length, nr_tiling, nr_bins_per_tile)
-    w = length / (nr_bins_per_tile - (nr_tiling-1)/nr_tiling)
+function tilingparams(len, nr_tiling, nr_bins_per_dim)
+    w = [len[i]/(nr_bins_per_dim[i] - (nr_tiling-1)/nr_tiling) for i=1:length(len)]
     offset = w * (nr_tiling-1)/nr_tiling
     k = w/nr_tiling
-    println("offset, k, w : $(offset), $(k), $(w)")
     offset, k, w
 end
 
 function TilingStateAggregator(p::StateAggregator, nr_tiling)
-    length = p.box.high - p.box.low
-    nr_bins_per_tile = prod(p.nbins)
-    offset, k, w = tilingparams(length, nr_tiling, nr_bins_per_tile)
+    len = p.box.high - p.box.low
+    nr_bins_per_dim = p.nbins
+    offset, k, w = tilingparams(len, nr_tiling, nr_bins_per_dim)
     stateAgg_array = [StateAggregator(p.box.low-offset+i*k,p.box.high+i*k,p.nbins)
                         for i=0:nr_tiling-1]
     TilingStateAggregator(stateAgg_array)
